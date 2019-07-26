@@ -10,9 +10,11 @@ RUN apt-get install -y libpq-dev \
 
 RUN pecl install inotify \
 	&& pecl install swoole \
+	&& pecl install igbinary \
 	&& pecl install redis \
 	&& docker-php-ext-enable inotify \
 	&& docker-php-ext-enable swoole \
+	&& docker-php-ext-enable igbinary \
 	&& docker-php-ext-enable redis
 
 CMD ["/usr/local/bin/php", "bin/laravels", "start"]

@@ -15,8 +15,15 @@
         "laravel/tinker": "^1.0",
         "nesbot/carbon": "^2.21",
         "php-http/curl-client": "^2.0",
-        "php-telegram-bot/laravel": "^0.0.1"
+        "php-telegram-bot/laravel": "^0.0.1",
+        "pocketmine/binaryutils": "^0.1.9"
     },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/pmmp/BinaryUtils"
+        }
+    ],
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
         "filp/whoops": "^2.0",
