@@ -136,6 +136,18 @@ class SetupCommand extends MagicCommand {
 				);
 				dump($edited);
 			}
+		}else if($action[0] == 'saveSchedule'){
+			unset($notes['weekday']);
+
+			if(true){ //если класса нету
+				$notes['finished_query'] = "setup.saveSchedule";
+
+				$edited = $this->getTelegram()->getCommandObject('setupclass')->onCallback($callbackQuery, ['start'], $edited);
+			}else{ //если уже есть класс предложить вернутся назад
+
+			}
+
+			$conv->update();
 		}
 		return $edited;
 	}
@@ -170,13 +182,13 @@ class SetupCommand extends MagicCommand {
 				'reply_markup' => Keyboard::remove(),
 				'parse_mode' => 'markdown',
 			]);
-
 			Request::sendMessage([
 				'chat_id' => $this->getMessage()->getChat()->getId(),
 				'text' => (($c = count($notes['day_lessons'][$notes['weekday']])) > 1) ? __('tgbot.setup.schedule_lesson_pos') : __('tgbot.setup.schedule_lesson_first'),
 				'reply_markup' => $this->genLessonsGridKeyboard(),
 				'parse_mode' => 'markdown'
 			]);
+
 			$conv->setWaitMsg(false);
 		}
 
@@ -194,7 +206,6 @@ class SetupCommand extends MagicCommand {
 				if($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬆️", 'callback_data' => "setup_changepos_up_{$notes['weekday']}_{$pos}"]);
 				$row[] = new InlineKeyboardButton(['text' => $titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
 				if ($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬇️", 'callback_data' => "setup_changepos_down_{$notes['weekday']}_{$pos}"]);
-				
 				$keyboard[] = $row;
 			}
 		}
