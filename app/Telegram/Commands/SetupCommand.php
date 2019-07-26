@@ -47,10 +47,12 @@ class SetupCommand extends MagicCommand {
 			$keyboard = [];
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
-					'text' => (($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).' '.$day,
+					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).'] '.$day,
 					'callback_data' => "setup_weekday_{$num}_force"
 				]);
 			}
+			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.setup.schedule_save_button'), 'callback_data' => 'setup_saveSchedule']);
+
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'weekday'){
 			dump($action[1]);
@@ -182,14 +184,15 @@ class SetupCommand extends MagicCommand {
 		$keyboard = [];
 		$notes = $this->getConversation()->notes;
 
-		if(count($data = $notes['day_lessons'][$notes['weekday']]) > 1){
+		if(($c = count($data = $notes['day_lessons'][$notes['weekday']])) > 0){
 			$titles = Lesson::whereIn('id', array_values($data))->get()->pluck('title', 'id');
 			foreach ($notes['day_lessons'][$notes['weekday']] as $pos => $lesson_id){
-				$keyboard[] = [
-					new InlineKeyboardButton(['text' => "⬆️", 'callback_data' => "setup_changepos_up_{$notes['weekday']}_{$pos}"]),
-					new InlineKeyboardButton(['text' => $titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]),
-					new InlineKeyboardButton(['text' => "⬇️", 'callback_data' => "setup_changepos_down_{$notes['weekday']}_{$pos}"]),
-				];
+				$row = [];
+				if($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬆️", 'callback_data' => "setup_changepos_up_{$notes['weekday']}_{$pos}"]);
+				$row[] = new InlineKeyboardButton(['text' => $titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
+				if ($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬇️", 'callback_data' => "setup_changepos_down_{$notes['weekday']}_{$pos}"]);
+				
+				$keyboard[] = $row;
 			}
 		}
 		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.add_more_button'), 'callback_data' => 'setup_weekday_'.$notes['weekday']])];
