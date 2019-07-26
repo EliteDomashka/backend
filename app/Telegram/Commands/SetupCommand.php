@@ -156,6 +156,7 @@ class SetupCommand extends MagicCommand {
 				'reply_markup' => $this->getLessonsKeyboard($page),
 				'parse_mode' => 'markdown'
 			]);
+			$conv->setWaitMsg(true);
 
 			$notes['page'] = $page;
 		}else {
@@ -175,6 +176,7 @@ class SetupCommand extends MagicCommand {
 				'reply_markup' => $this->genLessonsGridKeyboard(),
 				'parse_mode' => 'markdown'
 			]);
+			$conv->setWaitMsg(false);
 		}
 
 		$conv->update();

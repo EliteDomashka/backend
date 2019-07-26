@@ -11,7 +11,7 @@ class GenericmessageCommand extends SystemCommand {
 	public function execute() {
 		$conv = new Conversation(($chat_id = $this->getMessage()->getChat()->getId()), ($user_id = $this->getMessage()->getFrom()->getId()));
 
-		if(($cmd = $this->getTelegram()->getCommandObject($conv->getCommand())) instanceof MagicCommand){
+		if($conv->isWaitMsg() && ($cmd = $this->getTelegram()->getCommandObject($conv->getCommand())) instanceof MagicCommand){
 			/** @var $cmd MagicCommand */
 			$cmd->conversation = $conv;
 			$cmd->setUpdate($this->getUpdate());
