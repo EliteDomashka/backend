@@ -114,7 +114,7 @@ class SetupCommand extends MagicCommand {
 			$edited['reply_markup'] = new InlineKeyboard(
 				new InlineKeyboardButton(['text' => __('tgbot.setup.remove_button', ['weekday' => Week::$days[$weekday = $conv->notes['weekday']]]), 'callback_data' => "setup_del_{$pos}_".$weekday]),
 				new InlineKeyboardButton(['text' => __('tgbot.setup.insert_author_button'), 'callback_data' => "setup_attachauthor_{$lesson_id}"]),
-				new InlineKeyboardButton(['text' => __('tgbot.setup.back_button'), 'callback_data' => "setup_weekday_{$weekday}_force"])
+				new InlineKeyboardButton(['text' => __('tgbot.back_button'), 'callback_data' => "setup_weekday_{$weekday}_force"])
 			);
 		}else if($action[0] == 'del'){
 			if($action[2] == "force"){
