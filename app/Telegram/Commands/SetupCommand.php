@@ -28,6 +28,7 @@ class SetupCommand extends MagicCommand {
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
 		dump($action);
 		$conv = $this->getConversation();
+		$notes = &$conv->notes;
 		$conv->setCommand($this->name);
 
 		$anwser = ['callback_query_id' => $callbackQuery->getId(), 'text' => __('tgbot.callback_answer')];
@@ -44,7 +45,6 @@ class SetupCommand extends MagicCommand {
 		if($action[0] == 'schedule'){
 			$edited['text'] = __('tgbot.setup.schedule_hello');
 			$keyboard = [];
-			$notes = $conv->notes;
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
 					'text' => (($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).' '.$day,
@@ -54,7 +54,6 @@ class SetupCommand extends MagicCommand {
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'weekday'){
 			dump($action[1]);
-			$notes = &$conv->notes;
 			$conv->setCommand($this->name);
 
 			$notes['weekday'] = $weekday = $action[1];

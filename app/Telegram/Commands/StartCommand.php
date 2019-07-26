@@ -30,7 +30,7 @@ class StartCommand extends MagicCommand {
 
 		$data = [
 			'chat_id' => $chat_id,
-			'text'    => __('start.hello'),
+			'text'    => __('tgbot.start.hello'),
 			'parse_mode' => 'Markdown',
 			'reply_markup' => Menu::getMenu(1)
 		];
