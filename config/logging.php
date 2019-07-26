@@ -36,10 +36,15 @@ return [
     'channels' => [
         'stack' => [
             'driver' => 'stack',
-            'channels' => ['daily'],
+            'channels' => ['sentry', 'daily'],
             'ignore_exceptions' => false,
         ],
-
+	'sentry' => [
+		'driver' => 'sentry',
+		'level'  => Monolog\Logger::INFO, // The minimum monolog logging level at which this handler will be triggered
+		// For example: `\Monolog\Logger::ERROR`
+//		'bubble' => true, // Whether the messages that are handled can bubble up the stack or not
+	],
         'single' => [
             'driver' => 'single',
             'path' => storage_path('logs/laravel.log'),
