@@ -70,6 +70,7 @@ class SetupCommand extends MagicCommand {
 			}else{
 				$edited['text'] = __('tgbot.setup.schedule_lesson', ['lesson' => $c + 1, 'weekday' => Week::$days[$weekday]]);
 				$edited['reply_markup'] = $this->getLessonsKeyboard(isset($notes['page']) ? $notes['page'] : 0);
+				$conv->setWaitMsg(true);
 			}
 
 			Request::deleteMessage($edited);
