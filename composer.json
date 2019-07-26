@@ -15,8 +15,7 @@
         "laravel/tinker": "^1.0",
         "nesbot/carbon": "^2.21",
         "php-http/curl-client": "^2.0",
-        "php-telegram-bot/laravel": "^0.0.1",
-        "sebudesign/laravel-poeditor": "dev-master"
+        "php-telegram-bot/laravel": "^0.0.1"
     },
     "require-dev": {
         "beyondcode/laravel-dump-server": "^1.0",
