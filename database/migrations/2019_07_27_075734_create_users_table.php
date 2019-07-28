@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateLessonsIdTable extends Migration
+class CreateUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,10 +13,11 @@ class CreateLessonsIdTable extends Migration
      */
     public function up()
     {
-        Schema::create('lessons_id', function (Blueprint $table) {
-            $table->bigIncrements('id');
-            $table->string('title', 25);
-            $table->boolean('verified')->default(true); //TODO: set false
+        Schema::create('users', function (Blueprint $table) {
+            $table->bigInteger('id');
+            $table->string('lang', 2)->default('uk');
+            $table->bigInteger('class_owner')->nullable();
+//            $table->foreign('class_owner')->references('id')->on('classes');
             $table->timestamps();
         });
     }
@@ -28,6 +29,6 @@ class CreateLessonsIdTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('lessons_id');
+        Schema::dropIfExists('users');
     }
 }

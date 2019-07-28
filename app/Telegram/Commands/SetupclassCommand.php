@@ -1,7 +1,9 @@
 <?php
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use App\ClassM;
 use App\Telegram\Commands\MagicCommand;
+use App\User;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -12,6 +14,8 @@ class SetupclassCommand extends MagicCommand {
 	public function execute() {}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
+		$anwser = ['text' => __('tgbot.callback_answer')];
+
 		if ($action[0] == 'start'){
 			$edited['text'] = __('tgbot.class.start');
 			$edited['reply_markup'] = new InlineKeyboard(
@@ -43,7 +47,30 @@ class SetupclassCommand extends MagicCommand {
 
 
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
+		}elseif ($action[0] == 'selected'){
+			if (is_numeric($class_num = $action[1])){
+				$class = new ClassM();
+				$class->class_num = $class_num;
+				$class->save();
+				dump($class);
+				$user = $this->getUser();
+				$user->class_owner = $class->id;
+				$user->save();
+
+				$conv = $this->getConversation();
+				if(isset($conv->notes['finished_query'])){
+					/** @var MagicCommand $cmd */
+					$cmd = $this->getTelegram()->getCommandObject(($query = $conv->notes['finished_query'])[0]);
+					dump($query);
+					$edited = $cmd->onCallback($callbackQuery, $query[1], $edited);
+					dump($edited);
+				}else{
+					$edited['text'] = "ERR";
+				}
+			}
 		}
+		$callbackQuery->answer($anwser);
+
 		return $edited;
 	}
 	public function onMessage(): void {

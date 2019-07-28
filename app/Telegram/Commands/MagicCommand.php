@@ -2,7 +2,9 @@
 namespace App\Telegram\Commands;
 
 use App\Telegram\Conversation;
+use App\User;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\App;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
@@ -29,10 +31,22 @@ abstract class MagicCommand extends UserCommand{
 		}
 		return parent::getMessage();
 	}
+	/** @var ?User */
+	protected $user = null;
+	public function getUser(): User{
+		if($this->user == null){
+			$id = $this->getMessage()->getFrom()->getId();
+			dump($this->getMessage()->getFrom()->getLanguageCode());
+			$this->user = User::firstOrCreate([
+				'id' => $id,
+				'lang' => $this->getMessage()->getFrom()->getLanguageCode() ?? 'uk'
+			]);
+		}
+		return $this->user;
 
+	}
 	public function preExecute() {
-		dump($this->getMessage()->getFrom()->getLanguageCode());
-		App::setLocale($this->getMessage()->getFrom()->getLanguageCode());
+		App::setLocale($this->getUser()->lang);
 		return parent::preExecute();
 	}
 }

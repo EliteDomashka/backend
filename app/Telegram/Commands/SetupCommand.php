@@ -3,10 +3,12 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 
 
 
+use App\Agenda;
 use App\Lesson;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\BasicInlineKeyboard;
 use App\Telegram\Helpers\Week;
+use Carbon\Carbon;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -33,7 +35,7 @@ class SetupCommand extends MagicCommand {
 
 		$anwser = ['callback_query_id' => $callbackQuery->getId(), 'text' => __('tgbot.callback_answer')];
 
-		if($action[0] != 'schedule' && $action[0] != 'weekday'){
+		if($action[0] != 'schedule' && $action[0] != 'weekday' && $action[0] != 'saveSchedule' && $action[0] != 'finalSaveSchedule'){
 			if (!isset($notes['day_lessons']) && !isset($notes['weekday'])){
 				$anwser['text'] = __('tgbot.setup.session_fail');
 				dump($notes);
@@ -47,7 +49,7 @@ class SetupCommand extends MagicCommand {
 			$keyboard = [];
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
-					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).'] '.$day,
+					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).'] '."- {$c} ".$day,
 					'callback_data' => "setup_weekday_{$num}_force"
 				]);
 			}
@@ -139,14 +141,68 @@ class SetupCommand extends MagicCommand {
 		}else if($action[0] == 'saveSchedule'){
 			unset($notes['weekday']);
 
-			if(true){ //если класса нету
-				$notes['finished_query'] = "setup.saveSchedule";
+			if(($class_owner = $this->getUser()->class_owner) == null){ //если класса нету
+				$notes['finished_query'] = ["setup", ["saveSchedule"]];
 
-				$edited = $this->getTelegram()->getCommandObject('setupclass')->onCallback($callbackQuery, ['start'], $edited);
-			}else{ //если уже есть класс предложить вернутся назад
+				$edited =  $this->getTelegram()->getCommandObject('setupclass')->onCallback($callbackQuery, ['start'], $edited);
+			}else{
+				$keyboard = [];
+				dump($exists = Agenda::where('class_id', $this->getUser()->class_owner)->exists());
 
+				$edited['text'] = __('tgbot.setup.schedule_save_desc');
+
+				$keyboard[] = new InlineKeyboardButton([
+					'text' => __('tgbot.setup.schedule_save_default'),
+					'callback_data' => "setup_finalSaveSchedule_default"
+				]);
+
+				if($exists){
+					$keyboard[] = new InlineKeyboardButton([
+						'text' => __('tgbot.setup.schedule_save_current'),
+						'callback_data' => "setup_finalSaveSchedule_current"
+					]);
+					$keyboard[] = new InlineKeyboardButton([
+						'text' => __('tgbot.setup.schedule_save_next'),
+						'callback_data' => "setup_finalSaveSchedule_next"
+					]);
+				}
+
+				$keyboard[] = new InlineKeyboardButton([
+					'text' => __('tgbot.back_button'),
+					'callback_data' => 'setup_schedule'
+				]);
+
+				$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
+			}
+			$conv->update();
+		}else if($action[0] == 'finalSaveSchedule'){
+			if (!isset($notes['day_lessons'])){
+				$callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);
+				return [];
 			}
 
+			$dt = Carbon::now();
+
+			$week = -1;
+			if(($action = $action[1]) == "current"){
+				$week = $dt->week;
+			}elseif ($action == "next"){
+				$dt->addWeek();
+				$week = $dt->week;
+			}
+			$class_id = $this->getUser()->class_owner;
+			$send_data = [];
+			foreach ($notes['day_lessons'] as $week_day => $data){
+				if(empty($data)) unset($notes['day_lessons']);
+				foreach ($data ?? [] as $lesson_num => $lesson_id){
+					$send_data[] = ['class_id' => $class_id, 'day' => $week_day, 'num' => $lesson_num, 'lesson_id' => $lesson_id, 'week' => $week];
+				}
+			}
+
+			Agenda::insert($send_data);
+			$edited['text'] = __('tgbot.setup.schedule_save_success', ['lesson_count' => count($send_data), 'days' => count($notes['day_lessons'])]);
+
+			unset($notes['day_lessons']);
 			$conv->update();
 		}
 		return $edited;

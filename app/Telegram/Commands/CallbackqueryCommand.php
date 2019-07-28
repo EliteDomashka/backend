@@ -45,7 +45,5 @@ class CallbackqueryCommand extends SystemCommand {
 		}else{
 			dump('zero');
 		}
-		//        $data = ['callback_query_id' => $callback_query_id, $result, 'cache_time' => 5,];
-		//        return Request::answerCallbackQuery($data);
 	}
 }
