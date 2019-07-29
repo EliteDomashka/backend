@@ -158,7 +158,7 @@ $command = new Hhxsv5\LaravelS\Console\Portal($basePath);
 $input = new Symfony\Component\Console\Input\ArgvInput();
 $output = new Symfony\Component\Console\Output\ConsoleOutput();
 //echo shell_exec($str ="php {$basePath}/artisan migrate:refresh");
+//echo shell_exec($str ="php {$basePath}/artisan db:seed");
 echo shell_exec($str ="php {$basePath}/artisan migrate");
-echo shell_exec($str ="php {$basePath}/artisan db:seed");
 $code = $command->run($input, $output);
 exit($code);
