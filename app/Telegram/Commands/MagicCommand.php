@@ -41,6 +41,7 @@ abstract class MagicCommand extends UserCommand{
 				'id' => $id,
 				'lang' => $this->getMessage()->getFrom()->getLanguageCode() ?? 'uk'
 			]);
+			App::setLocale(self::$user->lang);
 		}
 		return self::$user;
 

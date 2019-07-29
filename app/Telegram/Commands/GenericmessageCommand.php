@@ -4,8 +4,9 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Conversation;
 use Longman\TelegramBot\Commands\SystemCommand;
+use Longman\TelegramBot\Entities\CallbackQuery;
 
-class GenericmessageCommand extends SystemCommand {
+class GenericmessageCommand extends MagicCommand {
 	protected $name = 'genericmessage';
 
 	public function execute() {
@@ -19,5 +20,12 @@ class GenericmessageCommand extends SystemCommand {
 			dump('run onMessage');
 			$cmd->onMessage();
 		}
+	}
+	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
+		return [];
+	}
+
+	public function isSystemCommand() {
+		return true;
 	}
 }

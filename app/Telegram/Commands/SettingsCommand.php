@@ -20,7 +20,7 @@ class SettingsCommand extends MagicCommand {
 				$keyboard = [];
 				foreach ( config('app.locales') as $code => $lang){
 					$keyboard[] = new InlineKeyboardButton([
-						'text' => ($code == App::getLocale() ? "✅ " : "").$lang,
+						'text' => ($code == $this->getUser()->lang ? "✅ " : "").$lang,
 						'callback_data' => 'settings_language_set_'.$code
 					]);
 				}

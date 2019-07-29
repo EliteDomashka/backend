@@ -7,13 +7,10 @@ use App\Telegram\Commands\Callback\Callback;
 use App\Telegram\Commands\Callback\ReactionCallback;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Conversation;
-use App\Telegram\Menu;
-use Illuminate\Support\Facades\Log;
-use Longman\TelegramBot\Commands\SystemCommand;
-use Longman\TelegramBot\Exception\TelegramException;
+use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Request;
 
-class CallbackqueryCommand extends SystemCommand {
+class CallbackqueryCommand extends MagicCommand {
 
 	protected $name = 'callbackquery';
 	protected $description = 'Reply to callback query';
@@ -49,5 +46,11 @@ class CallbackqueryCommand extends SystemCommand {
 		}else{
 			dump('zero');
 		}
+	}
+	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
+		return [];
+	}
+	public function isSystemCommand() {
+		return true;
 	}
 }
