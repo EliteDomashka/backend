@@ -41,7 +41,11 @@ class CallbackqueryCommand extends SystemCommand {
 
 
 		if(!empty($senddata)) {
-			dump($result = Request::editMessageText($senddata));
+			$result = Request::editMessageText($senddata);
+			if(!$result->isOk()){
+				dump($senddata);
+				dump($result);
+			}
 		}else{
 			dump('zero');
 		}

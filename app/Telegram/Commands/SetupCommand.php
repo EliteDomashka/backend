@@ -38,7 +38,6 @@ class SetupCommand extends MagicCommand {
 		if($action[0] != 'schedule' && $action[0] != 'weekday' && $action[0] != 'saveSchedule' && $action[0] != 'finalSaveSchedule'){
 			if (!isset($notes['day_lessons']) && !isset($notes['weekday'])){
 				$anwser['text'] = __('tgbot.setup.session_fail');
-				dump($notes);
 				Request::answerCallbackQuery($anwser);
 				return [];
 			}
@@ -47,17 +46,29 @@ class SetupCommand extends MagicCommand {
 		if($action[0] == 'schedule'){
 			$edited['text'] = __('tgbot.setup.schedule_hello');
 			$keyboard = [];
+
+			if( empty(isset($notes['day_lessons']) ? $notes['day_lessons'] : []) && ($class_owner = $this->getUser()->class_owner) != null){
+				$data = Agenda::getSchedule($class_owner)->addSelect('lesson_id')->get();
+
+				$day_lessons = [];
+				foreach ($data as $row){
+					if(!isset($day_lessons[$row['day']])) $day_lessons[$row['day']] = [];
+					$day_lessons[$row['day']][$row['num']] = $row['lesson_id'];
+				}
+				$notes['day_lessons'] = $day_lessons;
+				$conv->update();
+			}
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
-					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅' : ($c == 0 ? '❌' : '🔘')).'] '."- {$c} ".$day,
+					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅'. " - {$c}" : ($c == 0 ? '❌' : '🔘')).'] '.$day,
 					'callback_data' => "setup_weekday_{$num}_force"
 				]);
 			}
 			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.setup.schedule_save_button'), 'callback_data' => 'setup_saveSchedule']);
+			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.setup.back_button'), 'callback_data' => 'setup_saveSchedule']);
 
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'weekday'){
-			dump($action[1]);
 			$conv->setCommand($this->name);
 
 			$notes['weekday'] = $weekday = $action[1];
@@ -67,7 +78,7 @@ class SetupCommand extends MagicCommand {
 			$c = count($notes['day_lessons'][$weekday]);
 
 			if(isset($action[2]) && $action[2] == "force" && $c > 1){
-				$edited['text'] = __('tgbot.setup.schedule_lesson_pos');
+				$edited['text'] = __('tgbot.setup.schedule_lesson_pos', ['weekday' => Week::getDayString($notes['weekday'])]);
 				$edited['reply_markup'] = $this->genLessonsGridKeyboard();
 			}else{
 				$edited['text'] = __('tgbot.setup.schedule_lesson', ['lesson' => $c + 1, 'weekday' => Week::$days[$weekday]]);
@@ -108,7 +119,7 @@ class SetupCommand extends MagicCommand {
 			$conv->update();
 			Request::answerCallbackQuery($anwser);
 
-			$edited['text'] = __('tgbot.setup.schedule_lesson_pos');
+			$edited['text'] = __('tgbot.setup.schedule_lesson_pos', ['weekday' => Week::getDayString($notes['weekday'])]);
 			$edited['reply_markup'] = $this->genLessonsGridKeyboard();
 		}else if($action[0] == 'edit'){
 			$pos = $action[1];
@@ -126,7 +137,7 @@ class SetupCommand extends MagicCommand {
 				$lessons = array_values($lessons);
 				$conv->update();
 
-				$edited['text'] = __('tgbot.setup.schedule_lesson_pos');
+				$edited['text'] = __('tgbot.setup.schedule_lesson_pos', ['weekday' => Week::getDayString($notes['weekday'])]);
 				$edited['reply_markup'] = $this->genLessonsGridKeyboard();
 
 				Request::answerCallbackQuery($anwser);
@@ -136,18 +147,16 @@ class SetupCommand extends MagicCommand {
 					new InlineKeyboardButton(['text' => __('tgbot.setup.confirm_yes'), 'callback_data' => "setup_{$action[0]}_{$action[1]}_force"]),
 					new InlineKeyboardButton(['text' => __('tgbot.setup.confirm_no'), 'callback_data' => 'setup_edit_'.$action[1]])
 				);
-				dump($edited);
 			}
 		}else if($action[0] == 'saveSchedule'){
 			unset($notes['weekday']);
-
 			if(($class_owner = $this->getUser()->class_owner) == null){ //если класса нету
 				$notes['finished_query'] = ["setup", ["saveSchedule"]];
 
 				$edited =  $this->getTelegram()->getCommandObject('setupclass')->onCallback($callbackQuery, ['start'], $edited);
 			}else{
 				$keyboard = [];
-				dump($exists = Agenda::where('class_id', $this->getUser()->class_owner)->exists());
+				$exists = Agenda::where('class_id', $this->getUser()->class_owner)->exists();
 
 				$edited['text'] = __('tgbot.setup.schedule_save_desc');
 
@@ -193,15 +202,18 @@ class SetupCommand extends MagicCommand {
 			$class_id = $this->getUser()->class_owner;
 			$send_data = [];
 			foreach ($notes['day_lessons'] as $week_day => $data){
-				if(empty($data)) unset($notes['day_lessons']);
+				if(empty($data)) unset($notes['day_lessons'][$week_day]);
 				foreach ($data ?? [] as $lesson_num => $lesson_id){
 					$send_data[] = ['class_id' => $class_id, 'day' => $week_day, 'num' => $lesson_num, 'lesson_id' => $lesson_id, 'week' => $week];
 				}
 			}
-
+			Agenda::where([
+				['class_id', '=', $class_id],
+				['week', '=', $week]
+			])->delete();
 			Agenda::insert($send_data);
 			$edited['text'] = __('tgbot.setup.schedule_save_success', ['lesson_count' => count($send_data), 'days' => count($notes['day_lessons'])]);
-
+			$edited['reply_markup'] = new InlineKeyboard(new InlineKeyboardButton(['text' => __('tgbot.goto.lessons'), 'callback_data' => 'schedule_main']));
 			unset($notes['day_lessons']);
 			$conv->update();
 		}
@@ -223,7 +235,7 @@ class SetupCommand extends MagicCommand {
 				'chat_id' => $this->getMessage()->getChat()->getId(),
 				'text' => __( 'tgbot.setup.schedule_lesson', ['lesson' => ($c = count($notes['day_lessons'][$weekday = $notes['weekday']]))+1, 'weekday' => Week::$days[$weekday]]),
 				'reply_markup' => $this->getLessonsKeyboard($page),
-				'parse_mode' => 'markdown'
+				'parse_mode' => 'Markdown'
 			]);
 			$conv->setWaitMsg(true);
 
@@ -236,13 +248,13 @@ class SetupCommand extends MagicCommand {
 				'chat_id' => $this->getMessage()->getChat()->getId(),
 				'text' => __('tgbot.setup.schedule_success_lesson', ['weekday' => Week::$days[$notes['weekday']], 'lesson' => $lesson['title'], 'lesson_num' => count($notes['day_lessons'][$notes['weekday']])]),
 				'reply_markup' => Keyboard::remove(),
-				'parse_mode' => 'markdown',
+				'parse_mode' => 'Markdown',
 			]);
 			Request::sendMessage([
 				'chat_id' => $this->getMessage()->getChat()->getId(),
-				'text' => (($c = count($notes['day_lessons'][$notes['weekday']])) > 1) ? __('tgbot.setup.schedule_lesson_pos') : __('tgbot.setup.schedule_lesson_first'),
+				'text' => (($c = count($notes['day_lessons'][$notes['weekday']])) > 1) ? __('tgbot.setup.schedule_lesson_pos', ['weekday' => Week::getDayString($notes['weekday'])]) : __('tgbot.setup.schedule_lesson_first'),
 				'reply_markup' => $this->genLessonsGridKeyboard(),
-				'parse_mode' => 'markdown'
+				'parse_mode' => 'Markdown'
 			]);
 
 			$conv->setWaitMsg(false);
@@ -260,13 +272,13 @@ class SetupCommand extends MagicCommand {
 			foreach ($notes['day_lessons'][$notes['weekday']] as $pos => $lesson_id){
 				$row = [];
 				if($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬆️", 'callback_data' => "setup_changepos_up_{$notes['weekday']}_{$pos}"]);
-				$row[] = new InlineKeyboardButton(['text' => $titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
+				$row[] = new InlineKeyboardButton(['text' => '[№ '.($pos+1).'] '.$titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
 				if ($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬇️", 'callback_data' => "setup_changepos_down_{$notes['weekday']}_{$pos}"]);
 				$keyboard[] = $row;
 			}
 		}
 		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.add_more_button'), 'callback_data' => 'setup_weekday_'.$notes['weekday']])];
-		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.else_day_button'), 'callback_data' => 'setup_schedule'])];
+		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.else_day_button'), 'callback_data' => 'start'])];
 
 		return new InlineKeyboard(...$keyboard);
 	}
@@ -286,7 +298,6 @@ class SetupCommand extends MagicCommand {
 			$c = count($keyboard[$row]);
 			if($c == 4) $row++; // дабы следующим шагом следующию строку
 		}
-		dump($keyboard);
 
 		$row = [];
 		if($page != 0) $row[] = __('tgbot.setup.schedule_lesson_prev');

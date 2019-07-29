@@ -16,7 +16,6 @@ class GenericmessageCommand extends SystemCommand {
 			$cmd->conversation = $conv;
 			$cmd->setUpdate($this->getUpdate());
 
-			dump($cmd);
 			dump('run onMessage');
 			$cmd->onMessage();
 		}

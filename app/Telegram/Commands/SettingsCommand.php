@@ -12,7 +12,6 @@ class SettingsCommand extends MagicCommand {
 	public function execute() {}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-		var_dump($action);
 		if($action[0] == "language"){
 			if($action[1] == "start"){
 				dump($this->getUser());

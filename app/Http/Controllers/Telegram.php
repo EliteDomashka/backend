@@ -2,6 +2,7 @@
 namespace App\Http\Controllers;
 
 
+use App\Telegram\Commands\MagicCommand;
 use Illuminate\Support\Facades\Log;
 use Longman\TelegramBot\Entities\Update;
 use Longman\TelegramBot\Request;
@@ -15,6 +16,7 @@ class Telegram extends Controller {
 
     	try {
 	        if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {
+	        	MagicCommand::$user = null;
 		        return response((string)$response->isOk());
 	        }
         } catch (\Exception $e) {

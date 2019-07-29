@@ -52,7 +52,7 @@ class SetupclassCommand extends MagicCommand {
 				$class = new ClassM();
 				$class->class_num = $class_num;
 				$class->save();
-				dump($class);
+
 				$user = $this->getUser();
 				$user->class_owner = $class->id;
 				$user->save();
@@ -61,9 +61,7 @@ class SetupclassCommand extends MagicCommand {
 				if(isset($conv->notes['finished_query'])){
 					/** @var MagicCommand $cmd */
 					$cmd = $this->getTelegram()->getCommandObject(($query = $conv->notes['finished_query'])[0]);
-					dump($query);
 					$edited = $cmd->onCallback($callbackQuery, $query[1], $edited);
-					dump($edited);
 				}else{
 					$edited['text'] = "ERR";
 				}

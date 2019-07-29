@@ -32,17 +32,17 @@ abstract class MagicCommand extends UserCommand{
 		return parent::getMessage();
 	}
 	/** @var ?User */
-	protected $user = null;
+	static $user = null;
 	public function getUser(): User{
-		if($this->user == null){
+		if(self::$user == null){
 			$id = $this->getMessage()->getFrom()->getId();
 			dump($this->getMessage()->getFrom()->getLanguageCode());
-			$this->user = User::firstOrCreate([
+			self::$user = User::firstOrCreate([
 				'id' => $id,
 				'lang' => $this->getMessage()->getFrom()->getLanguageCode() ?? 'uk'
 			]);
 		}
-		return $this->user;
+		return self::$user;
 
 	}
 	public function preExecute() {
