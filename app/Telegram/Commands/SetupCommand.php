@@ -272,7 +272,7 @@ class SetupCommand extends MagicCommand {
 			foreach ($notes['day_lessons'][$notes['weekday']] as $pos => $lesson_id){
 				$row = [];
 				if($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬆️", 'callback_data' => "setup_changepos_up_{$notes['weekday']}_{$pos}"]);
-				$row[] = new InlineKeyboardButton(['text' => '[№ '.($pos+1).'] '.$titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
+				$row[] = new InlineKeyboardButton(['text' => ($pos+1).'. '.$titles[$lesson_id], 'callback_data' => 'setup_edit_'.$pos]);
 				if ($c > 1) $row[] = new InlineKeyboardButton(['text' => "⬇️", 'callback_data' => "setup_changepos_down_{$notes['weekday']}_{$pos}"]);
 				$keyboard[] = $row;
 			}
