@@ -65,7 +65,7 @@ class SetupCommand extends MagicCommand {
 				]);
 			}
 			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.setup.schedule_save_button'), 'callback_data' => 'setup_saveSchedule']);
-			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.setup.back_button'), 'callback_data' => 'setup_saveSchedule']);
+			$keyboard[] = new InlineKeyboardButton(['text' => __('tgbot.back_button'), 'callback_data' => 'start']);
 
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'weekday'){
@@ -278,7 +278,7 @@ class SetupCommand extends MagicCommand {
 			}
 		}
 		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.add_more_button'), 'callback_data' => 'setup_weekday_'.$notes['weekday']])];
-		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.else_day_button'), 'callback_data' => 'start'])];
+		$keyboard[] = [new InlineKeyboardButton(['text' => __('tgbot.setup.else_day_button'), 'callback_data' => 'setup_schedule'])];
 
 		return new InlineKeyboard(...$keyboard);
 	}
