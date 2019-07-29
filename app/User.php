@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property int class_owner Владелец класса
  */
 class User extends Model {
+	protected $primaryKey = 'id';
 	public $incrementing = false;
 	public $timestamps = true;
 	protected $fillable = ['id', 'lang', 'class_owner'];
