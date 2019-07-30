@@ -11,8 +11,9 @@ class ScheduleCommand extends MagicCommand{
 
 	public function execute() {
 		Request::sendMessage([
-			'chat_id' => $this->getMessage()->getFrom()->getId(),
+			'chat_id' => $this->getMessage()->getChat()->getId(),
 			'text' => $this->genMsg()
+			'parse_mode' => 'Markdown'
 		]);
 	}
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {

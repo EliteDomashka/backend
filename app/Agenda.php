@@ -14,6 +14,6 @@ class Agenda extends Model {
     public $timestamps = false;
 
     public static function getSchedule(int $class_id){
-    	return Agenda::where('class_id', $class_id)->select('lessons_id.title', 'day', 'num' )->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id');
+    	return Agenda::where('class_id', $class_id)->select('lessons_id.title', 'day', 'num' )->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->orderBy('num', 'asc');
     }
 }

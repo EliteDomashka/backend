@@ -22,16 +22,16 @@ class CallbackqueryCommand extends MagicCommand {
 		$callback_data = explode('_', $callback_data);
 		dump($callback_data);
 
-		$conversation = new Conversation(($chat_id = $callback_query->getMessage()->getChat()->getId()), ($user_id = $callback_query->getFrom()->getId()));
+
 		$senddata = [
-			'chat_id' => $chat_id,
+			'chat_id' => $callback_query->getMessage()->getChat()->getId(),
 			'message_id' => ($message_id = $callback_query->getMessage()->getMessageId()),
 			'parse_mode' => 'markdown',
 		];
 
 		if(($cmd = $this->getTelegram()->getCommandObject(array_shift($callback_data))) instanceof MagicCommand){
 			/** @var $cmd MagicCommand */
-			$cmd->conversation = $conversation;
+			$cmd->conversation = $this->getConversation();
 			$senddata = $cmd->onCallback($callback_query, $callback_data, $senddata);
 			dump('MagicCommand end');
 		}

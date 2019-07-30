@@ -15,8 +15,8 @@ class Telegram extends Controller {
     	error_reporting(E_ALL);
 
     	try {
+	        MagicCommand::$user = null;
 	        if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {
-	        	MagicCommand::$user = null;
 		        return response((string)$response->isOk());
 	        }
         } catch (\Exception $e) {

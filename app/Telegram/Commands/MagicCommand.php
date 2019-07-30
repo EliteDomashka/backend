@@ -21,10 +21,16 @@ abstract class MagicCommand extends UserCommand{
 	 * @return Conversation
 	 */
 	public function getConversation(): Conversation {
-		if($this->conversation === null)  $this->conversation = new Conversation(($msg = $this->getMessage())->getChat()->getId(), $msg->getFrom()->getId(), $this->name);
+		if($this->conversation === null)  $this->conversation = new Conversation($this->getMessage()->getChat()->getId(), $this->getFrom()->getId(), $this->name);
 		return $this->conversation;
 	}
 
+	public function getFrom(): \Longman\TelegramBot\Entities\User{
+		if (($query = $this->getCallbackQuery()) instanceof CallbackQuery){
+			return $query->getFrom();
+		}
+		return $this->getMessage()->getFrom();
+	}
 	public function getMessage() {
 		if (($query = $this->getCallbackQuery()) instanceof CallbackQuery){
 			return $query->getMessage();
@@ -35,12 +41,8 @@ abstract class MagicCommand extends UserCommand{
 	static $user = null;
 	public function getUser(): User{
 		if(self::$user == null){
-			$id = $this->getMessage()->getFrom()->getId();
-			dump($this->getMessage()->getFrom()->getLanguageCode());
-			self::$user = User::firstOrCreate([
-				'id' => $id,
-				'lang' => $this->getMessage()->getFrom()->getLanguageCode() ?? 'uk'
-			]);
+			$id = $this->getFrom()->getId();
+			self::$user = User::firstOrCreate(['id' => $id], ['lang' => $this->getFrom()->getLanguageCode() ?? 'uk']);
 			App::setLocale(self::$user->lang);
 		}
 		return self::$user;
