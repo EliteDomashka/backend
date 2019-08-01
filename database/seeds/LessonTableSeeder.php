@@ -19,7 +19,7 @@ class LessonTableSeeder extends Seeder
 		    ['title' => "Англ. Мова"],
 		    ['title' => "Фіз-ра"],
 		    ['title' => "Зар. Літ"],
-		    ['title' => "Труд. нвач"],
+		    ['title' => "Труд. навч"],
 		    ['title' => "Інформатика"],
 		    ['title' => "Географія"],
 		    ['title' => "Історія"],

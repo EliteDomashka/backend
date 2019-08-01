@@ -2,6 +2,8 @@
 namespace App\Telegram\Helpers;
 
 
+use Carbon\Carbon;
+
 class Week {
 	public static $days= [
 		1 => "Понеділок",
@@ -13,5 +15,16 @@ class Week {
 	];
 	public static function getDayString($day) {
 		return self::$days[$day];
+	}
+	/**
+	 * Выдаст на выходе строку вида 29.07.2019-4.08.2019
+	 * @param int $week неедля от 1
+	 * @return string
+	 */
+	public static function humanize(int $week): string {
+		$str = '(';
+		$dt = ($year_start = Carbon::now()->startOfYear())->addDays(($week*7)-$year_start->day-7)->startOfWeek(); //-7 ткк недели идут от 0, тоесть иначе $week-1
+		$str .= $dt->format($format = 'd.m.Y') . '-'. $dt->endOfWeek()->format($format).')';
+		return $str;
 	}
 }

@@ -17,35 +17,58 @@ class StartCommand extends MagicCommand {
 
 	public function execute() {
 		$message = $this->getMessage();
-		$chat_id = $message->getChat()->getId();
-
 		$data = [
-			'chat_id' => $chat_id,
-			'text'    => __('tgbot.start.hello'),
-			'parse_mode' => 'Markdown',
-			'reply_markup' => new InlineKeyboard(
-				new InlineKeyboardButton([
-					'text' => __('tgbot.start.hello_button'),
-					'callback_data' => 'start'
-				]),
-				new InlineKeyboardButton([
-					'text' => __('tgbot.start.language_button'),
-					'callback_data' => 'settings_language_start'
-				])
-			)
+			'chat_id' => $message->getChat()->getId()
 		];
+
+		if($this->getUser()->class_owner === null){
+			$data = $data + [
+				'text'    => __('tgbot.start.hello'),
+				'parse_mode' => 'Markdown',
+				'reply_markup' => new InlineKeyboard(
+					new InlineKeyboardButton([
+						'text' => __('tgbot.start.hello_button'),
+						'callback_data' => 'start'
+					]),
+					new InlineKeyboardButton([
+						'text' => __('tgbot.settings.language_button'),
+						'callback_data' => 'settings_language_start'
+					])
+				)
+			];
+		}else{
+			$data = $this->genForPro($data);
+		}
 
 		return Request::sendMessage($data);
 	}
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-		$edited['text'] = __('tgbot.start.step1');
-		$edited['reply_markup'] = (new InlineKeyboard(...[
+		if(empty($action) && $this->getUser()->class_owner == null){
+			$edited['text'] = __('tgbot.start.step1');
+			$edited['reply_markup'] = (new InlineKeyboard(...[
 			new InlineKeyboardButton([
-				'text' => __('tgbot.start.step1_button'),
-				'callback_data' => 'setup_schedule'
-			]),
-		]));
+					'text' => __('tgbot.start.step1_button'),
+					'callback_data' => 'setup_schedule'
+				]),
+			]));
+		}else{
+			$edited = $edited + $this->genForPro($edited);
+		}
 		return $edited;
+	}
+	public function genForPro(array $data): array {
+		$data['text'] = __('tgbot.start.pro_hi');
+		$data['reply_markup'] = new InlineKeyboard(
+			new InlineKeyboardButton([
+				'text' => __('tgbot.schedule.title'),
+				'callback_data' => 'schedule_hi'
+			]),
+			new InlineKeyboardButton([
+				'text'=> __('tgbot.settings.title'),
+				'callback_data' => 'settings_hi'
+			])
+		);
+		return $data;
 	}
 
 	public function isSystemCommand() {
