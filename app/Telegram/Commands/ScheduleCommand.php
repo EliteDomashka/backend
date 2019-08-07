@@ -52,12 +52,12 @@ class ScheduleCommand extends MagicCommand{
 //
 //		return $dt;
 //	}
-	public function genMsg(bool $full = false){
+	public function genMsg(bool $full = false): string {
 		$day = ($dt = Carbon::now())->dayOfWeekIso;
 		$data = Agenda::getSchedule($this->getUser()->class_owner)->where('week', -1);
+		$getdays = [];
 
 		if(!$full){
-			$getdays = [];
 			if($day >= 5){
 				$getdays[] = $day;
 				$getdays[] = $day+1;
@@ -66,19 +66,28 @@ class ScheduleCommand extends MagicCommand{
 				$getdays[] = $day;
 				$getdays[] = $day+1;
 			}
-			$data = $data->whereIn('day', $getdays)->get();
+		} else {
+			for($day = 1; $day <= 6; $day++) {
+				$getdays[] = $day;
+			}
 		}
-		else $data = $data->get();
+		$data = $data->whereIn('day', $getdays)->get();
+
 
 		$schedule = [];
 		foreach ($data as $row){
 			$schedule[$row['day']][] = $row;
 		}
 		$str = "";
-		foreach ($schedule as $day => $data){
-			$str .= "_".Week::getDayString($day)."_".PHP_EOL.PHP_EOL;
-			foreach ($data as $row){
-				$str .= ($row['num']+1).". *{$row['title']}*".PHP_EOL;
+		foreach ($getdays as $day){
+			$str .= "_".Week::getDayString($day)."_".PHP_EOL;
+			if(isset($schedule[$day])){
+				$str .= PHP_EOL;
+				foreach ($schedule[$day] as $row){
+					$str .= ($row['num']+1).". *{$row['title']}*".PHP_EOL;
+				}
+			}else{
+				$str .= __('tgbot.schedule.empty').PHP_EOL;
 			}
 				$str .= PHP_EOL.PHP_EOL;
 		}
