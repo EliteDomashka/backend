@@ -105,7 +105,7 @@ class SettingsCommand extends MagicCommand {
 				}
 
 				$keyboard[] = new InlineKeyboardButton([
-					'text' => __('tgbot.back_button'),
+					'text' => __('tgbot.back_toMain_button'),
 					'callback_data' => 'start'
 				]);
 

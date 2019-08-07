@@ -53,8 +53,8 @@ class ScheduleCommand extends MagicCommand{
 //		return $dt;
 //	}
 	public function genMsg(bool $full = false){
-		$day = Carbon::now()->dayOfWeekIso;
-		$data = Agenda::getSchedule($this->getUser()->class_owner);
+		$day = ($dt = Carbon::now())->dayOfWeekIso;
+		$data = Agenda::getSchedule($this->getUser()->class_owner)->where('week', -1);
 
 		if(!$full){
 			$getdays = [];
