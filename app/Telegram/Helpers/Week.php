@@ -27,4 +27,8 @@ class Week {
 		$str .= $dt->format($format = 'd.m.Y') . '-'. $dt->endOfWeek()->format($format).')';
 		return $str;
 	}
+	public static function humanizeDayAndWeek(int $week, int $day): string {
+		$dt = ($year_start = Carbon::now()->startOfYear())->addDays(($week*7)-$year_start->day-7)->startOfWeek()->addDays($day-1);
+		return $dt->format('d.m.Y');
+	}
 }
