@@ -71,7 +71,7 @@ class SettingsCommand extends MagicCommand {
 							break;
 					}
 					/** @var Collection $data */
-					$data = Agenda::getSchedule($this->getUser()->class_owner)->where('week', $week)->addSelect('lesson_id')->get();
+					$data = Agenda::getSchedule($this->getUser()->class_owner)->addSelect('lesson_id')->where('week', $week)->get();
 					if($data->count() == 0){
 						$callbackQuery->answer([
 							'text' => __('tgbot.settings.schedule_err_get', ['data' => __('tgbot.settings.schedule_get_'.$action[2], ['week_str' => Week::humanize($week)])]),
@@ -116,6 +116,8 @@ class SettingsCommand extends MagicCommand {
 					$user = $this->getUser();
 					$user->lang = $lang;
 					$user->save();
+					self::$user = $user;
+
 					$callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
 				}
 				return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
