@@ -54,36 +54,41 @@ class ScheduleCommand extends MagicCommand{
 //	}
 	public function genMsg(bool $full = false): string {
 		$day = ($dt = Carbon::now())->dayOfWeekIso;
-		$data = Agenda::getSchedule($this->getUser()->class_owner)->where('week', -1);
+		$data = Agenda::getSchedule($this->getUser()->class_owner)->addSelect('week')->where('week', -1)->orWhere('week', date('W'));
 		$getdays = [];
+		$currentWeek = (int)date('W');
 
 		if(!$full){
 			if($day >= 5){
-				$getdays[] = $day;
-				$getdays[] = $day+1;
-				$getdays[] = 1;
+				$getdays[$day] = $currentWeek;
+				$getdays[$day+1] = $currentWeek;
+				$data = $data->orWhere('week', $currentWeek+1);
+				$getdays[1] = $currentWeek+1; //TODO: брать понедельник со следующей недели
 			}elseif ($day < 5){
-				$getdays[] = $day;
-				$getdays[] = $day+1;
+				$getdays[$day];
+				$getdays[$day+1];
 			}
 		} else {
 			for($day = 1; $day <= 6; $day++) {
-				$getdays[] = $day;
+				$getdays[$day] = $currentWeek;
 			}
 		}
-		$data = $data->whereIn('day', $getdays)->get();
+		$data = $data->whereIn('day', array_keys($getdays))->get();
 
 
 		$schedule = [];
 		foreach ($data as $row){
-			$schedule[$row['day']][] = $row;
+			if(!isset($schedule[$row['week']])) $schedule[$row['week']] = [];
+			if(!isset($schedule[$row['week']][$row['day']])) $schedule[$row['week']][$row['day']] = [];
+
+			$schedule[$row['week']][$row['day']][] = $row;
 		}
 		$str = "";
-		foreach ($getdays as $day){
-			$str .= "_".Week::getDayString($day)."_".PHP_EOL;
-			if(isset($schedule[$day])){
-				$str .= PHP_EOL;
-				foreach ($schedule[$day] as $row){
+		foreach ($getdays as $day => $week){
+			$str .= "_".Week::getDayString($day)."_ ".(($currentWeek != $week) ? '('.Week::humanizeDayAndWeek($week, $day).')' : "").PHP_EOL;
+			if(!isset($schedule[$week])) $week = -1;
+			if(isset($schedule[$week][$day])){
+				foreach ($schedule[$week][$day] as $row){
 					$str .= ($row['num']+1).". *{$row['title']}*".PHP_EOL;
 				}
 			}else{
