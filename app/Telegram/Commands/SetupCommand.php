@@ -144,7 +144,7 @@ class SetupCommand extends MagicCommand {
 			}else{
 				$edited['text'] = __('tgbot.setup.confirm');
 				$edited['reply_markup'] = new InlineKeyboard(
-					new InlineKeyboardButton(['text' => __('tgbot.setup.confirm_yes'), 'callback_data' => "setup_{$action[0]}_{$action[1]}_force"]),
+					new InlineKeyboardButton(['text' => __('tgbot.confirm_yes'), 'callback_data' => "setup_{$action[0]}_{$action[1]}_force"]),
 					new InlineKeyboardButton(['text' => __('tgbot.setup.confirm_no'), 'callback_data' => 'setup_edit_'.$action[1]])
 				);
 			}
@@ -224,13 +224,13 @@ class SetupCommand extends MagicCommand {
 		$conv = $this->getConversation();
 		$notes = &$conv->notes;
 		if(!isset($notes['day_lessons'])) return;
-		
+
 		$prev = ($text == __('tgbot.setup.schedule_lesson_prev') ? true : ($text == __('tgbot.setup.schedule_lesson_next') ? false : null));
 		if($prev !== null){
 			$page = isset($notes['page']) ? $notes['page'] : 0;
 			if($page > 0 & $prev) $page--;
 			else $page++;
-			
+
 			Request::sendMessage([
 				'chat_id' => $this->getMessage()->getChat()->getId(),
 				'text' => __( 'tgbot.setup.schedule_lesson', ['lesson' => ($c = count($notes['day_lessons'][$weekday = $notes['weekday']]))+1, 'weekday' => Week::$days[$weekday]]),

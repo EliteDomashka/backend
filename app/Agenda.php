@@ -4,6 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Collection;
+
 /**
  * Class Agenda
  * @property int week
@@ -14,7 +16,7 @@ class Agenda extends Model {
     public $timestamps = false;
 
     public static function getSchedule(int $class_id, bool $asTitle = true){
-    	$base =  Agenda::where('class_id', $class_id)->select('day', 'num' )->orderBy('num', 'asc')->orderBy('day', 'asc');
+    	$base =  Agenda::where('class_id', $class_id)->select('day', 'num' )->orderBy('day', 'asc')->orderBy('num', 'asc');
     	if($asTitle){
             return $base->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->addSelect('lessons_id.title as title');
         }else{
@@ -22,9 +24,20 @@ class Agenda extends Model {
         }
     }
 
-    public static function getScheduleForWeek(int $class_id, callable $query, ?int $week = null, $raw = false, bool $asTitle = true): array {
+    /**
+     * @param int $class_id
+     * @param callable $query
+     * @param null|array|int $week
+     * @param bool $raw
+     * @param bool $asTitle
+     * @return array|Collection
+     */
+    public static function getScheduleForWeek(int $class_id, callable $query, $week = null, $raw = false, bool $asTitle = true) {
         if($week === null) $week = (int)date('W');
-        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('week')->whereIn('week', [$week, -1]))->get();
+        if(is_array($week)){
+            $week[] = -1;
+        }
+        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('week')->whereIn('week', is_numeric($week) ? [$week, -1] : $week))->get();
         $new = [];
         foreach ($lessons as $lesson){
             if(!isset($new[$lesson['week']])) $new[$lesson['week']] = [];
@@ -36,8 +49,10 @@ class Agenda extends Model {
             }
         }
         $lessons = $new;
-        dump('returned: '.isset($lessons[$week]) ? $week : -1);
-        return $lessons[isset($lessons[$week]) ? $week : -1];
+        if(is_array($week)) return $lessons;
+        if(empty($lessons)) return [];
+
+        return $lessons[isset($lessons[$week]) ? $week : (isset($lessons[-1]) ? -1 : null)];
     }
 
     public static function findNextLesson(int $class_id, int $day, int $num): array {
@@ -56,22 +71,17 @@ class Agenda extends Model {
         }, $currentWeek, true);
 
         $dt = Carbon::now(new \DateTimeZone('Europe/Kiev'));
-        dump($dt->dayOfWeekIso);
 
         $result = [];
         foreach ($lessons as $lesson){ //поиск на этой неделе
             if(empty($result)){
-                dump($lesson);
                 if($lesson['day'] > $dt->dayOfWeekIso){
-                    dump($lesson);
-                    echo 'ok';
                     $dt->addDays($lesson['day'] - $dt->dayOfWeekIso);
                     $result = $lesson;
                 }
             }
         }
-        dump($result);
-        echo "поиск на следующей неделе";
+
         if(empty($result)){// поиск на следующей неделе
             $lessons = Agenda::getScheduleForWeek($class_id, function ($query)use($lesson_id){
                 return $query->where('lesson_id', $lesson_id);
@@ -94,15 +104,11 @@ class Agenda extends Model {
             $result = $lessons[0];
             $dt->addWeek();
         }
-        dump($lessons);
+
         if(!is_array($result)) $result = $result->toArray();
         $result['date'] = $dt->format("Y-m-d");
         $result['timestamp'] = $dt->getTimestamp();
+        $result['lesson_id'] = $lesson_id;
         return $result;
     }
-
-    public function addTitle(){
-        return $this->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->addSelect('lessons_id.title as title');
-    }
-
 }

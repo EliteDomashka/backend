@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -11,9 +12,11 @@ class AppServiceProvider extends ServiceProvider
      *
      * @return void
      */
-    public function register()
-    {
-        //
+    public function register(){
+        \Illuminate\Database\Query\Builder::macro("clearOrdersBy", function () {
+            $this->{$this->unions ? 'unionOrders' : 'orders'} = null;
+            return $this;
+        });
     }
 
     /**

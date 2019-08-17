@@ -62,7 +62,7 @@ class ScheduleCommand extends MagicCommand{
 			if($day >= 5){
 				$getdays[$day] = $currentWeek;
 				if($day < 6) $getdays[$day+1] = $currentWeek;
-				$getdays[1] = $currentWeek+1; //TODO: брать понедельник со следующей недели
+				$getdays[1] = $currentWeek+1;
 			}elseif ($day < 5){
 				$getdays[$day] = $currentWeek;
 				$getdays[$day+1] = $currentWeek;
@@ -73,13 +73,10 @@ class ScheduleCommand extends MagicCommand{
 				$getdays[$day] = $week;
 			}
 		}
-		$schedule = [];
-		foreach (Agenda::getSchedule($this->getUser()->class_owner, true)->whereIn('day', array_keys($getdays))->wherein('week', array_values($getdays))->addSelect('week')->get() as $row){
-			if(!isset($schedule[$row['week']])) $schedule[$row['week']] = [];
-			if(!isset($schedule[$row['week']][$row['day']])) $schedule[$row['week']][$row['day']] = [];
+        $schedule = Agenda::getScheduleForWeek($this->getUser()->class_owner, function ($query)use($getdays){
+		    return $query->whereIn('day', array_keys($getdays));
+        }, array_values($getdays));
 
-			$schedule[$row['week']][$row['day']][] = $row;
-		}
 		$str = "";
 		foreach ($getdays as $day => $week){
 			$str .= "_".Week::getDayString($day)."_ ".(($currentWeek != $week) ? '('.Week::humanizeDayAndWeek($week, $day).')' : "").PHP_EOL;
