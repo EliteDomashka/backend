@@ -5,6 +5,7 @@ use App\Agenda;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -54,30 +55,26 @@ class ScheduleCommand extends MagicCommand{
 //	}
 	public function genMsg(bool $full = false): string {
 		$day = ($dt = Carbon::now())->dayOfWeekIso;
-		$data = Agenda::getSchedule($this->getUser()->class_owner)->addSelect('week')->where('week', -1)->orWhere('week', date('W'));
-		$getdays = [];
 		$currentWeek = (int)date('W');
+		$getdays = [];
 
 		if(!$full){
 			if($day >= 5){
 				$getdays[$day] = $currentWeek;
-				$getdays[$day+1] = $currentWeek;
-				$data = $data->orWhere('week', $currentWeek+1);
+				if($day < 6) $getdays[$day+1] = $currentWeek;
 				$getdays[1] = $currentWeek+1; //TODO: брать понедельник со следующей недели
 			}elseif ($day < 5){
-				$getdays[$day];
-				$getdays[$day+1];
+				$getdays[$day] = $currentWeek;
+				$getdays[$day+1] = $currentWeek;
 			}
 		} else {
+			$week = $day >= 5 ? $currentWeek+1 : $currentWeek;
 			for($day = 1; $day <= 6; $day++) {
-				$getdays[$day] = $currentWeek;
+				$getdays[$day] = $week;
 			}
 		}
-		$data = $data->whereIn('day', array_keys($getdays))->get();
-
-
 		$schedule = [];
-		foreach ($data as $row){
+		foreach (Agenda::getSchedule($this->getUser()->class_owner, true)->whereIn('day', array_keys($getdays))->wherein('week', array_values($getdays))->addSelect('week')->get() as $row){
 			if(!isset($schedule[$row['week']])) $schedule[$row['week']] = [];
 			if(!isset($schedule[$row['week']][$row['day']])) $schedule[$row['week']][$row['day']] = [];
 
@@ -98,6 +95,6 @@ class ScheduleCommand extends MagicCommand{
 		}
 
 		return $str;
-		
+
 	}
 }

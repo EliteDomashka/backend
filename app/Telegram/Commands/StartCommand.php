@@ -64,6 +64,10 @@ class StartCommand extends MagicCommand {
 				'callback_data' => 'schedule_hi'
 			]),
 			new InlineKeyboardButton([
+				'text' => __('tgbot.task.new'),
+				'callback_data' => "newtask_hi"
+			]),
+			new InlineKeyboardButton([
 				'text'=> __('tgbot.settings.title'),
 				'callback_data' => 'settings_hi'
 			])

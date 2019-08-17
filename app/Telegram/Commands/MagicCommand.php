@@ -14,9 +14,8 @@ abstract class MagicCommand extends UserCommand{
 	public $conversation;
 
 	abstract public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array;
-	public function onMessage(): void {
+	public function onMessage(): void {}
 
-	}
 	/**
 	 * @return Conversation
 	 */
@@ -51,5 +50,9 @@ abstract class MagicCommand extends UserCommand{
 	public function preExecute() {
 		App::setLocale($this->getUser()->lang);
 		return parent::preExecute();
+	}
+
+	public function __toString() {
+		return $this->name;
 	}
 }

@@ -48,7 +48,6 @@ class Conversation {
 			}catch (BinaryDataException $exp){
 				$this->notes = [];
 			}
-			dump($this);
 		}
 
 	}

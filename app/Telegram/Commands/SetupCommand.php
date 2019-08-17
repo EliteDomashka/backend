@@ -6,9 +6,9 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use App\Agenda;
 use App\Lesson;
 use App\Telegram\Commands\MagicCommand;
-use App\Telegram\Helpers\BasicInlineKeyboard;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\App;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -45,19 +45,19 @@ class SetupCommand extends MagicCommand {
 
 		if($action[0] == 'schedule'){
 			$edited['text'] = __('tgbot.setup.schedule_hello');
-			$keyboard = [];
-
-			if( empty(isset($notes['day_lessons']) ? $notes['day_lessons'] : []) && ($class_owner = $this->getUser()->class_owner) != null){
-				$data = Agenda::getSchedule($class_owner)->addSelect('lesson_id')->get();
-
-				$day_lessons = [];
-				foreach ($data as $row){
-					if(!isset($day_lessons[$row['day']])) $day_lessons[$row['day']] = [];
-					$day_lessons[$row['day']][$row['num']] = $row['lesson_id'];
-				}
-				$notes['day_lessons'] = $day_lessons;
-				$conv->update();
-			}
+//			$notes['day_lessons'] = [];
+//			if( empty(isset($notes['day_lessons']) ? $notes['day_lessons'] : []) && ($class_owner = $this->getUser()->class_owner) != null){
+//				dump('getSchedule');
+//				$data = Agenda::getSchedule($class_owner)->addSelect('lesson_id')->get();
+//
+//				$day_lessons = [];
+//				foreach ($data as $row){
+//					if(!isset($day_lessons[$row['day']])) $day_lessons[$row['day']] = [];
+//					$day_lessons[$row['day']][$row['num']] = $row['lesson_id'];
+//				}
+//				$notes['day_lessons'] = $day_lessons;
+//				$conv->update();
+//			}
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
 					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅'. " - {$c}" : ($c == 0 ? '❌' : '🔘')).'] '.$day,
