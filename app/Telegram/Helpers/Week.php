@@ -33,6 +33,9 @@ class Week {
 	    $dt->startOfWeek()->addDays($dayOfWeek-1);
 	    return $dt;
     }
+    public static function getWeekByTimestamp(int $timestamp) : int {
+	    return Carbon::createFromTimestamp($timestamp)->week;
+    }
 	public static function humanizeDayAndWeek(int $week, int $day): string {
 		$dt = ($year_start = Carbon::now()->startOfYear())->addDays(($week*7)-$year_start->day-7)->startOfWeek()->addDays($day-1);
 		return $dt->format('d.m.Y');

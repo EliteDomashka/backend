@@ -45,9 +45,16 @@ abstract class MagicCommand extends UserCommand{
 			App::setLocale(self::$user->lang);
 		}
 		return self::$user;
-
 	}
+	public function getClassId(): ?int{
+	    if($this->getMessage()->getChat()->isPrivateChat()) return $this->getUser()->class_owner;
+	    else{
+	        //TODO: implement
+        }
+	    return null;
+    }
 	public function preExecute() {
+		dump(json_encode($this->getUser()));
 		App::setLocale($this->getUser()->lang);
 		return parent::preExecute();
 	}

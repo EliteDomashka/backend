@@ -68,7 +68,7 @@ class Agenda extends Model {
 
         $lessons = Agenda::getScheduleForWeek($class_id, function ($query)use($lesson_id){
             return $query->where('lesson_id', $lesson_id);
-        }, $currentWeek, true);
+        }, $currentWeek, true, false);
 
         $dt = Carbon::now(new \DateTimeZone('Europe/Kiev'));
 

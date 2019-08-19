@@ -2,6 +2,7 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 use App\Agenda;
+use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
@@ -42,7 +43,7 @@ class NewtaskCommand extends MagicCommand {
                 Request::sendMessage($this->genTaskAcceptedMsg());
             }elseif(isset($conv->notes['wait_lesson'])){
                 $currentWeek =(int)date('W');
-                $result = Agenda::getScheduleForWeek($this->getUser()->class_owner, function ($query){
+                $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
                     return $query->where('title', $this->getMessage()->getText());
 //                    clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'title')
                 }, [$currentWeek, $currentWeek+1], true, true);
@@ -92,6 +93,10 @@ class NewtaskCommand extends MagicCommand {
                             }
                         }
                     }
+                    $keyboard[] = new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => 'newtask_step2'
+                    ]);
 
                     $send['reply_markup'] = (new InlineKeyboard(...$keyboard))->setSelective(false);
                     unset($conv->notes['wait_lesson']);
@@ -108,7 +113,7 @@ class NewtaskCommand extends MagicCommand {
 	}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-        if($action[0] == 'select'){
+        if($action[0] == 'select' && $action[0] == 'save'){
             $notes = $this->getConversation()->notes;
             if (empty($notes)){
                 $callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);
@@ -122,7 +127,7 @@ class NewtaskCommand extends MagicCommand {
                     $keyboard = [];
                     $day = (int)date('N');
                     $currentWeek = (int)date('W');
-                    $lessons = Agenda::getScheduleForWeek($this->getUser()->class_owner, function ($query)use($day){
+                    $lessons = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($day){
                         return $query->whereIn('day', [$day, 5]);
                     }, $currentWeek);
 
@@ -159,7 +164,7 @@ class NewtaskCommand extends MagicCommand {
             }
         }elseif ($action[0] == 'selectLesson'){
 	        $conv = $this->getConversation();
-            $lesson = $conv->notes['lesson'] = Agenda::findNextLesson($this->getUser()->class_owner, $action[1], $action[2]);
+            $lesson = $conv->notes['lesson'] = Agenda::findNextLesson($this->getClassId(), $action[1], $action[2]);
             $conv->update();
 	        dump($lesson);
 	        $edited['text'] = __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $lesson['date'], 'day' => Week::getDayString($lesson['day'])]);
@@ -178,7 +183,10 @@ class NewtaskCommand extends MagicCommand {
             $conv->update();
 
         }elseif ($action[0] == "save") {
-	        $edited['text'] = 'saved (no) '.PHP_EOL.json_encode($this->getConversation()->notes);
+	        $notes = $this->getConversation()->notes;
+	        dump($notes);
+	        Task::add($this->getClassId(), $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
+	        $edited['text'] = 'saved';
         }elseif ($action[0] == "step2"){
 	        return $edited + $this->genTaskAcceptedMsg();
         }elseif ($action[0] == "hi"){
@@ -190,7 +198,7 @@ class NewtaskCommand extends MagicCommand {
 	private function genLessonsKeyboard(): Keyboard{
         $keyboard = [];
         $co = 0;
-        $lessons = Agenda::getScheduleForWeek($this->getUser()->class_owner, function ($query){
+        $lessons = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
             return $query->clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title'); // сюда не над добавляить week ЭТО фича
         }, null, true);
         $c = count($lessons);

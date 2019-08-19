@@ -73,7 +73,7 @@ class ScheduleCommand extends MagicCommand{
 				$getdays[$day] = $week;
 			}
 		}
-        $schedule = Agenda::getScheduleForWeek($this->getUser()->class_owner, function ($query)use($getdays){
+        $schedule = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($getdays){
 		    return $query->whereIn('day', array_keys($getdays));
         }, array_values($getdays));
 
