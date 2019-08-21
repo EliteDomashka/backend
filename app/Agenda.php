@@ -16,11 +16,11 @@ class Agenda extends Model {
     public $timestamps = false;
 
     public static function getSchedule(int $class_id, bool $asTitle = true){
-    	$base =  Agenda::where('class_id', $class_id)->select('day', 'num' )->orderBy('day', 'asc')->orderBy('num', 'asc');
+    	$base =  Agenda::where('agenda.class_id', $class_id)->select('agenda.day', 'agenda.num' )->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
     	if($asTitle){
             return $base->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->addSelect('lessons_id.title as title');
         }else{
-    	    return $base->addSelect('lesson_id');
+    	    return $base->addSelect('agenda.lesson_id');
         }
     }
 
@@ -37,7 +37,7 @@ class Agenda extends Model {
         if(is_array($week)){
             $week[] = -1;
         }
-        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('week')->whereIn('week', is_numeric($week) ? [$week, -1] : $week))->get();
+        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('agenda.week')->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week))->get();
         $new = [];
         foreach ($lessons as $lesson){
             if(!isset($new[$lesson['week']])) $new[$lesson['week']] = [];

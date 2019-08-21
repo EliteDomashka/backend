@@ -23,7 +23,11 @@ class ScheduleCommand extends MagicCommand{
 				new InlineKeyboardButton([
 					'text' => __('tgbot.schedule.toggle_full_btn'),
 					'callback_data' => 'schedule_full'
-				])
+				]),
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.back_toMain_button'),
+                    'callback_data' => 'start'
+                ])
 			)
 		]);
 	}

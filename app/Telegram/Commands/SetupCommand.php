@@ -45,19 +45,6 @@ class SetupCommand extends MagicCommand {
 
 		if($action[0] == 'schedule'){
 			$edited['text'] = __('tgbot.setup.schedule_hello');
-//			$notes['day_lessons'] = [];
-//			if( empty(isset($notes['day_lessons']) ? $notes['day_lessons'] : []) && ($class_owner = $this->getUser()->class_owner) != null){
-//				dump('getSchedule');
-//				$data = Agenda::getSchedule($class_owner)->addSelect('lesson_id')->get();
-//
-//				$day_lessons = [];
-//				foreach ($data as $row){
-//					if(!isset($day_lessons[$row['day']])) $day_lessons[$row['day']] = [];
-//					$day_lessons[$row['day']][$row['num']] = $row['lesson_id'];
-//				}
-//				$notes['day_lessons'] = $day_lessons;
-//				$conv->update();
-//			}
 			foreach (Week::$days as $num => $day){
 				$keyboard[] = new InlineKeyboardButton([
 					'text' => '['.(($c = count(isset($notes['day_lessons']) && isset($notes['day_lessons'][$num]) ? $notes['day_lessons'][$num] : [])) > 2 ? '✅'. " - {$c}" : ($c == 0 ? '❌' : '🔘')).'] '.$day,
@@ -158,10 +145,10 @@ class SetupCommand extends MagicCommand {
 				$keyboard = [];
 				$exists = Agenda::where('class_id', $this->getUser()->class_owner)->exists();
 
-				$edited['text'] = __('tgbot.setup.schedule_save_desc');
+				$edited['text'] = __($exists ? 'tgbot.setup.schedule_save_desc' : 'tgbot.setup.schedule_save_confirm');
 
 				$keyboard[] = new InlineKeyboardButton([
-					'text' => __('tgbot.setup.schedule_save_default'),
+					'text' => __($exists ? 'tgbot.setup.schedule_save_default' : 'tgbot.confirm_yes'),
 					'callback_data' => "setup_finalSaveSchedule_default"
 				]);
 

@@ -113,7 +113,7 @@ class NewtaskCommand extends MagicCommand {
 	}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-        if($action[0] == 'select' && $action[0] == 'save'){
+        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'){
             $notes = $this->getConversation()->notes;
             if (empty($notes)){
                 $callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);
@@ -186,7 +186,17 @@ class NewtaskCommand extends MagicCommand {
 	        $notes = $this->getConversation()->notes;
 	        dump($notes);
 	        Task::add($this->getClassId(), $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
-	        $edited['text'] = 'saved';
+	        $edited['text'] = __('tgbot.task.saved');
+	        $edited['reply_markup'] = new InlineKeyboard(
+	            new InlineKeyboardButton([
+                    'text' => __('tgbot.goto.tasks'),
+                    'callback_data' => 'tasks'
+                ]),
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.back_toMain_button'),
+                    'callback_data' => 'start'
+                ])
+            );
         }elseif ($action[0] == "step2"){
 	        return $edited + $this->genTaskAcceptedMsg();
         }elseif ($action[0] == "hi"){
