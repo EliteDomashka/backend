@@ -82,8 +82,8 @@
         "saved": "Чудово, записав"
     },
     "tasks": {
-        "day_title": "Уся домашя для :date (*:weekday*)",
-        "next_week": "Наступна неділля",
+        "day_title": "Уся домашня для :date (*:weekday*)",
+        "next_week": "Наступна неділя",
         "prev_week": "Минула неділя"
     },
     "confirm_yes": "ТАК",
