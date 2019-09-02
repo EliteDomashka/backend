@@ -3,6 +3,7 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int day dayOfWeek
@@ -28,5 +29,21 @@ class Task extends Model{
                 'class_id' => $class_id,
                 'desc' => $desc
             ]);
+    }
+
+    public static function getByWeek(int $class_id, callable $queryCall, $week, bool $raw = false){
+        return Agenda::getScheduleForWeek($class_id, function ($query)use($week, $queryCall){
+            return $queryCall($query->join('tasks', function ($join)use($week){
+                $join = $join->on([
+                    ['agenda.num', '=', 'tasks.num'],
+                    ['agenda.day', '=', "tasks.day"]
+                    ]);
+                if(is_array($week)){
+                    $join->whereIn('tasks.week', $week);
+                }else{
+                    $join->where('tasks.week', $week);
+                }
+            })->addSelect('tasks.task')->addSelect('tasks.desc'));
+        }, $week, $raw);
     }
 }

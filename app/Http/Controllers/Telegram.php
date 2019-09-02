@@ -11,9 +11,8 @@ use PhpTelegramBot\Laravel\PhpTelegramBotContract;
 
 class Telegram extends Controller {
     public function handle(PhpTelegramBotContract $bot){
-    	Log::info('test');
     	error_reporting(E_ALL);
-
+dump('tg request');
     	try {
 	        MagicCommand::$user = null;
 	        if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {

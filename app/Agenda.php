@@ -40,12 +40,16 @@ class Agenda extends Model {
         $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('agenda.week')->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week))->get();
         $new = [];
         foreach ($lessons as $lesson){
-            if(!isset($new[$lesson['week']])) $new[$lesson['week']] = [];
+            $_week = $lesson['week'];
+
+            if(!isset($new[$_week])) $new[$_week] = [];
             if(!$raw) {
-                if (!isset($new[$lesson['week']][$lesson['day']])) $new[$lesson['week']][$lesson['day']] = [];
-                if (!isset($new[$lesson['week']][$lesson['day']][$lesson['num']])) $new[$lesson['week']][$lesson['day']][$lesson['num']] = $lesson->toArray();
+                unset($lesson['week']);
+
+                if (!isset($new[$_week][$lesson['day']])) $new[$_week][$lesson['day']] = [];
+                if (!isset($new[$_week][$lesson['day']][$lesson['num']])) $new[$_week][$lesson['day']][$lesson['num']] = $lesson->toArray();
             }else{
-                $new[$lesson['week']][] = $lesson->toArray();
+                $new[$_week][] = $lesson->toArray();
             }
         }
         $lessons = $new;
