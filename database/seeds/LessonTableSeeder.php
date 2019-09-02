@@ -15,7 +15,7 @@ class LessonTableSeeder extends Seeder
 		    ['title' => "Алгебра"],
 		    ['title' => "Геометрія"],
 		    ['title' => "Укр. Мова"],
-		    ['title' => "Укр. kіт"],
+		    ['title' => "Укр. літ"],
 		    ['title' => "Англ. Мова"],
 		    ['title' => "Фіз-ра"],
 		    ['title' => "Зар. літ"],

@@ -17,7 +17,7 @@ class SettingsCommand extends MagicCommand {
 	public function execute() {}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-		$edited['text'] = 'not implement';
+		$edited['text'] = 'not implement, '.json_encode($action);
 		if($action[0] == 'hi'){
 			$edited['text'] = __('tgbot.settings.title');
 			$edited['reply_markup'] = new InlineKeyboard(

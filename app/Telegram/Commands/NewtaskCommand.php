@@ -185,12 +185,13 @@ class NewtaskCommand extends MagicCommand {
         }elseif ($action[0] == "save") {
 	        $notes = $this->getConversation()->notes;
 	        dump($notes);
+	        dump(Week::getWeekByTimestamp($notes['lesson']['timestamp']));
 	        Task::add($this->getClassId(), $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
 	        $edited['text'] = __('tgbot.task.saved');
 	        $edited['reply_markup'] = new InlineKeyboard(
 	            new InlineKeyboardButton([
                     'text' => __('tgbot.goto.tasks'),
-                    'callback_data' => 'tasks'
+                    'callback_data' => 'tasks_show'
                 ]),
                 new InlineKeyboardButton([
                     'text' => __('tgbot.back_toMain_button'),

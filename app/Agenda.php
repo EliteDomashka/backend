@@ -47,7 +47,8 @@ class Agenda extends Model {
                 unset($lesson['week']);
 
                 if (!isset($new[$_week][$lesson['day']])) $new[$_week][$lesson['day']] = [];
-                if (!isset($new[$_week][$lesson['day']][$lesson['num']])) $new[$_week][$lesson['day']][$lesson['num']] = $lesson->toArray();
+//                if (!isset($new[$_week][$lesson['day']][$lesson['num']])) $new[$_week][$lesson['day']][$lesson['num']] = $lesson->toArray();
+                $new[$_week][$lesson['day']][] = $lesson->toArray();
             }else{
                 $new[$_week][] = $lesson->toArray();
             }
