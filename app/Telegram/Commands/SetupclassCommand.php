@@ -51,11 +51,11 @@ class SetupclassCommand extends MagicCommand {
 			if (is_numeric($class_num = $action[1])){
 				$class = new ClassM();
 				$class->class_num = $class_num;
+				$class->user_owner = $this->getUser()->id;
+				$class->chat_id = $this->getMessage()->getChat()->getId();
 				$class->save();
 
-				$user = $this->getUser();
-				$user->class_owner = $class->id;
-				$user->save();
+
 
 				$conv = $this->getConversation();
 				if(isset($conv->notes['finished_query'])){
@@ -66,7 +66,27 @@ class SetupclassCommand extends MagicCommand {
 					$edited['text'] = "ERR";
 				}
 			}
-		}
+		}elseif ($action[0] == "bindchat"){
+		    $conv = $this->getConversation();
+		    if (!isset($action[1])){
+		        $conv->notes['waitAddToChat'] = $this->getClass()->id;
+		        $conv->update();
+		        $edited['text'] = __('tgbot.class.bind_chat_instruction');
+		        $edited['reply_markup'] = new InlineKeyboard(
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_toMain_button'),
+                        'callback_data' => 'setupclass_bindchat_reset'
+                    ])
+                );
+            }else if ($action[1] == 'reset'){
+		        if(isset($conv->notes['waitAddToChat'])) unset($conv->notes['waitAddToChat']);
+		        $conv->update();
+                $callbackQuery->answer($anwser);
+            
+                return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
+            }
+        }
+
 		$callbackQuery->answer($anwser);
 
 		return $edited;

@@ -16,6 +16,7 @@ class Telegram extends Controller {
 //        date_default_timezone_set(config('app.timezone'));
     	try {
 	        MagicCommand::$user = null;
+	        MagicCommand::$class = null;
 	        if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {
 		        return response((string)$response->isOk());
 	        }

@@ -19,21 +19,27 @@ class SettingsCommand extends MagicCommand {
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
 		$edited['text'] = 'not implement, '.json_encode($action);
 		if($action[0] == 'hi'){
+		    $keyboard = [
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.settings.edit_button'),
+                    'callback_data' => 'settings_edit_schedule'
+                ]),
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.settings.language_button'),
+                    'callback_data' => 'settings_language_start'
+                ])];
+		    if($this->getClass()->user_owner == $this->getUser()->id && $this->getClass()->chat_id != $this->getMessage()->getChat()->getId()){
+		        $keyboard[] = new InlineKeyboardButton([
+                    'text' => __('tgbot.settings.connect_chat_title'),
+                    'callback_data' => 'setupclass_bindchat'
+                ]);
+            }
 			$edited['text'] = __('tgbot.settings.title');
-			$edited['reply_markup'] = new InlineKeyboard(
-				new InlineKeyboardButton([
-					'text' => __('tgbot.settings.edit_button'),
-					'callback_data' => 'settings_edit_schedule'
-				]),
-				new InlineKeyboardButton([
-					'text' => __('tgbot.settings.language_button'),
-					'callback_data' => 'settings_language_start'
-				])
-			);
+			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'edit'){
 			if($action[1] == 'schedule'){
 				if(empty($action[2] ?? [])){
-					$week = date('W');
+					$week = Week::getCurrentWeek();
 
 					$edited['text'] = __('tgbot.settings.schedule_edit');
 					$edited['reply_markup'] = new InlineKeyboard(
@@ -57,7 +63,7 @@ class SettingsCommand extends MagicCommand {
 				}else{
 					$week = Carbon::now()->weekOfYear;
 					switch ($action[2]){
-						case  'default':
+						case 'default':
 							$week = -1;
 							break;
 						case 'prev':
@@ -71,7 +77,7 @@ class SettingsCommand extends MagicCommand {
 							break;
 					}
 					/** @var Collection $data */
-					$data = Agenda::getSchedule($this->getUser()->class_owner)->addSelect('lesson_id')->where('week', $week)->get();
+					$data = Agenda::getSchedule($this->getClassId())->addSelect('lesson_id')->where('week', $week)->get();
 					if($data->count() == 0){
 						$callbackQuery->answer([
 							'text' => __('tgbot.settings.schedule_err_get', ['data' => __('tgbot.settings.schedule_get_'.$action[2], ['week_str' => Week::humanize($week)])]),
@@ -104,14 +110,15 @@ class SettingsCommand extends MagicCommand {
 					]);
 				}
 
-				$keyboard[] = new InlineKeyboardButton([
+				if($this->getMessage()->getChat()->isPrivateChat()) $keyboard[] = new InlineKeyboardButton([
 					'text' => __('tgbot.back_toMain_button'),
 					'callback_data' => 'start'
 				]);
 
 				$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 			}else if($action[1] == 'set'){
-				if(in_array($lang = $action[2], array_keys(config('app.locales')))){
+                $edited['text'] = __('tgbot.settings.title');
+                if(in_array($lang = $action[2], array_keys(config('app.locales')))){
 					App::setLocale($lang);
 					$user = $this->getUser();
 					$user->lang = $lang;

@@ -5,6 +5,7 @@ use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -15,17 +16,12 @@ class TasksCommand extends MagicCommand {
     protected $private_only = false;
 
     public function execute(){
-       dump(Request::sendMessage($this->genMessage([
-          'parse_mode' => 'markdown',
-          'chat_id' => $this->getMessage()->getChat()->getId()
-       ], true, Week::getCurrentWeek())));
+       $this->sendMessage($this->genMessage([], true, Week::getCurrentWeek()));
     }
     public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array{
         if($action[0] == "show") {
             if(isset($action[1]) && is_numeric($action[1])) $action[1] = (bool)(int)$action[1];
             if(isset($action[2]) && is_numeric($action[2])) $action[2] = (int)$action[2];
-            dump($action);
-            dump(isset($action[2]) ? $action[2] : Week::getCurrentWeek());
             return $this->genMessage($edited, isset($action[1]) && is_bool($action[1]) ? $action[1] : true, isset($action[2]) ? $action[2] : Week::getCurrentWeek());
         }
         return [];
@@ -34,9 +30,9 @@ class TasksCommand extends MagicCommand {
     protected function genMessage(array $base, bool $full, int $week): array {
         $base['text'] = $this->getTasks($full, $week);
         $base['reply_markup'] = new InlineKeyboard(...[
-            $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0']) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1'], ),
+            $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
             [new InlineKeyboardButton(['text' => __('tgbot.tasks.prev_week'), 'callback_data' => "tasks_show_{$full}_".($week-1)]), new InlineKeyboardButton(['text' => __('tgbot.tasks.next_week'), 'callback_data' => "tasks_show_{$full}_".($week+1)]),],
-            new InlineKeyboardButton(['text' => __('tgbot.back_toMain_button'), 'callback_data' => 'start'])
+            $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton(['text' => __('tgbot.back_toMain_button'), 'callback_data' => 'start']) : null
         ]);
         return $base;
     }

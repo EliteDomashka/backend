@@ -137,13 +137,13 @@ class SetupCommand extends MagicCommand {
 			}
 		}else if($action[0] == 'saveSchedule'){
 			unset($notes['weekday']);
-			if(($class_owner = $this->getUser()->class_owner) == null){ //если класса нету
+			if($this->getClassId() == null){ //если класса нету
 				$notes['finished_query'] = ["setup", ["saveSchedule"]];
 
 				$edited =  $this->getTelegram()->getCommandObject('setupclass')->onCallback($callbackQuery, ['start'], $edited);
 			}else{
 				$keyboard = [];
-				$exists = Agenda::where('class_id', $this->getUser()->class_owner)->exists();
+				$exists = Agenda::where('class_id', $this->getClassId())->exists();
 
 				$edited['text'] = __($exists ? 'tgbot.setup.schedule_save_desc' : 'tgbot.setup.schedule_save_confirm');
 
@@ -186,7 +186,7 @@ class SetupCommand extends MagicCommand {
 				$dt->addWeek();
 				$week = $dt->week;
 			}
-			$class_id = $this->getUser()->class_owner;
+			$class_id = $this->getClassId();
 			$send_data = [];
 			foreach ($notes['day_lessons'] as $week_day => $data){
 				if(empty($data)) unset($notes['day_lessons'][$week_day]);
@@ -292,6 +292,6 @@ class SetupCommand extends MagicCommand {
 
 		$keyboard[] = $row;
 
-		return new Keyboard(...$keyboard);
+		return (new Keyboard(...$keyboard))->setOneTimeKeyboard(true);
 	}
 }

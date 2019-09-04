@@ -21,7 +21,7 @@ class StartCommand extends MagicCommand {
 			'chat_id' => $message->getChat()->getId()
 		];
 
-		if($this->getUser()->class_owner === null){
+		if($this->getClassId() === null){
 			$data = $data + [
 				'text'    => __('tgbot.start.hello'),
 				'parse_mode' => 'Markdown',
@@ -43,7 +43,7 @@ class StartCommand extends MagicCommand {
 		return Request::sendMessage($data);
 	}
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-		if(empty($action) && $this->getUser()->class_owner == null){
+		if(empty($action) && $this->getClassId() == null){
 			$edited['text'] = __('tgbot.start.step1');
 			$edited['reply_markup'] = (new InlineKeyboard(...[
 			new InlineKeyboardButton([
@@ -63,6 +63,10 @@ class StartCommand extends MagicCommand {
 				'text' => __('tgbot.schedule.title'),
 				'callback_data' => 'schedule_hi'
 			]),
+            new InlineKeyboardButton([
+                'text' => __('tgbot.tasks.title'),
+                'callback_data' => "tasks_show"
+            ]),
 			new InlineKeyboardButton([
 				'text' => __('tgbot.task.new'),
 				'callback_data' => "newtask_hi"

@@ -24,10 +24,11 @@ class ScheduleCommand extends MagicCommand{
 					'text' => __('tgbot.schedule.toggle_full_btn'),
 					'callback_data' => 'schedule_full'
 				]),
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.back_toMain_button'),
-                    'callback_data' => 'start'
-                ])
+                $this->getMessage()->getChat()->isPrivateChat() ?
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_toMain_button'),
+                        'callback_data' => 'start'
+                    ]) : null
 			)
 		]);
 	}
@@ -43,10 +44,11 @@ class ScheduleCommand extends MagicCommand{
 					'text' => __('tgbot.schedule.toggle_min_btn'),
 					'callback_data' => 'schedule'
 				]),
+			$this->getMessage()->getChat()->isPrivateChat() ?
 			new InlineKeyboardButton([
 				'text' => __('tgbot.back_toMain_button'),
 				'callback_data' => 'start'
-			])
+			]) : null
 		);
 		return $edited;
 	}
@@ -59,7 +61,7 @@ class ScheduleCommand extends MagicCommand{
 //	}
 	public function genMsg(bool $full = false): string {
 		$day = ($dt = Carbon::now())->dayOfWeekIso;
-		$currentWeek = (int)date('W');
+		$currentWeek = Week::getCurrentWeek();
 		$getdays = [];
 
 		if(!$full){

@@ -17,10 +17,8 @@ class CreateClassesTable extends Migration
             $table->bigIncrements('id');
             $table->string('domain')->nullable();
             $table->smallInteger('class_num');
-
-//            $table->foreign('id')->references('class_id')->on('agenda');
-
-	        //            $table->smallInteger('class_letter');
+            $table->bigInteger('chat_id');
+            $table->bigInteger('user_owner');
         });
     }
 

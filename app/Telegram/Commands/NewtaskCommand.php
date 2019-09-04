@@ -24,8 +24,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
-        Request::sendMessage([
-			'chat_id' => $this->getMessage()->getChat()->getId(),
+        $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
             'reply_markup' => Keyboard::forceReply()->setSelective(true)
 		] + ($this->getMessage()->getChat()->isPrivateChat() ? [] : ['reply_to_message_id' => $this->getMessage()->getMessageId()]));
@@ -39,10 +38,10 @@ class NewtaskCommand extends MagicCommand {
 
             if(!isset($conv->notes['wait_lesson'])) {
                 $conv->notes['task'] = $this->getMessage()->getText();
-                $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
-                Request::sendMessage($this->genTaskAcceptedMsg());
+                $conv->notes['msg_reply_id'] = $conv->notes['task_input_id'] = $this->getMessage()->getMessageId();
+                $this->sendMessage($this->genTaskAcceptedMsg());
             }elseif(isset($conv->notes['wait_lesson'])){
-                $currentWeek =(int)date('W');
+                $currentWeek = Week::getCurrentWeek();
                 $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
                     return $query->where('title', $this->getMessage()->getText());
 //                    clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'title')
@@ -54,7 +53,7 @@ class NewtaskCommand extends MagicCommand {
                 if (!empty($result)){
                     $send['text'] = __('tgbot.task.get_day');
 
-                    $currentWeek = (int)date('W');
+                    $currentWeek = Week::getCurrentWeek();
                     $nowdt = Carbon::now();
                     $data = [];
                     $forWeeks = [-1, $currentWeek, $currentWeek+1];
@@ -106,7 +105,7 @@ class NewtaskCommand extends MagicCommand {
                     $conv->setWaitMsg(true);
                     $conv->notes['wait_lesson'] = true;
                 }
-                Request::sendMessage($send);
+                $this->sendMessage($send);
             }
 			$conv->update();
 		}
@@ -126,7 +125,7 @@ class NewtaskCommand extends MagicCommand {
                     $edited['text'] = __('tgbot.task.select_lesson');
                     $keyboard = [];
                     $day = (int)date('N');
-                    $currentWeek = (int)date('W');
+                    $currentWeek = Week::getCurrentWeek();
                     $lessons = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($day){
                         return $query->whereIn('day', [$day, 5]);
                     }, $currentWeek);
@@ -183,20 +182,27 @@ class NewtaskCommand extends MagicCommand {
             $conv->update();
 
         }elseif ($action[0] == "save") {
-	        $notes = $this->getConversation()->notes;
-	        dump($notes);
-	        dump(Week::getWeekByTimestamp($notes['lesson']['timestamp']));
-	        Task::add($this->getClassId(), $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
-	        $edited['text'] = __('tgbot.task.saved');
+            $conv = $this->getConversation();
+	        $notes = &$conv->notes;
+	        
+	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
+	        
+            unset($notes['lesson']);
+	        unset($notes['task']);
+	        unset($notes['task_input_id']);
+	        unset($notes['msg_reply_id']);
+	        $conv->update();
+	        
+            $edited['text'] = __('tgbot.task.saved');
 	        $edited['reply_markup'] = new InlineKeyboard(
 	            new InlineKeyboardButton([
                     'text' => __('tgbot.goto.tasks'),
                     'callback_data' => 'tasks_show'
                 ]),
-                new InlineKeyboardButton([
+                $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
                     'text' => __('tgbot.back_toMain_button'),
                     'callback_data' => 'start'
-                ])
+                ]) : null
             );
         }elseif ($action[0] == "step2"){
 	        return $edited + $this->genTaskAcceptedMsg();
@@ -234,23 +240,32 @@ class NewtaskCommand extends MagicCommand {
         );
     }
 	private function genTaskAcceptedMsg(){
+	    $keyboard = [
+            new InlineKeyboardButton([
+                'text' => __('tgbot.task.chose_auto'),
+                'callback_data' => "newtask_chose_auto"
+            ]),
+            new InlineKeyboardButton([
+                'text' => __('tgbot.task.chose_write'),
+                'callback_data' => "newtask_chose_byLesson"
+            ]),
+            $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
+                'text' => __('tgbot.back_toMain_button'),
+                'callback_data' => 'start'
+            ]) : null
+        ];
+	    if($this->getMessage()->getChat()->isPrivateChat()){
+            $keyboard[] = new InlineKeyboardButton([
+                'text' => __('tgbot.back_button'),
+                'callback_data' => 'newtask_hi'
+            ]);
+        }
+	    
         return [
             'chat_id' => $this->getMessage()->getChat()->getId(),
+            'reply_to_message_id' => $this->getConversation()->notes['msg_reply_id'] ?? null,
             'text' => __('tgbot.task.taskstr_accepted', ['task' => $this->getConversation()->notes['task']]),
-            'reply_markup' => new InlineKeyboard(
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.task.chose_auto'),
-                    'callback_data' => "newtask_chose_auto"
-                ]),
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.task.chose_write'),
-                    'callback_data' => "newtask_chose_byLesson"
-                ]),
-                $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
-                    'text' => __('tgbot.back_button'),
-                    'callback_data' => 'newtask_hi'
-                ]) : null
-            ),
+            'reply_markup' => new InlineKeyboard(...$keyboard),
             'parse_mode' => 'markdown'
         ];
     }

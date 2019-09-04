@@ -3,14 +3,17 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+
 /**
- * @property int class_owner Владелец класса
+ * @property int id
+ * @property int lang язык, uk/ru
  */
+
 class User extends Model {
 	protected $primaryKey = 'id';
 	public $incrementing = false;
 	public $timestamps = true;
-	protected $fillable = ['id', 'lang', 'class_owner'];
+	protected $fillable = ['id', 'lang'];
 	protected $attributes = [
 		'lang' => 'uk'
 	];

@@ -1,13 +1,18 @@
 <?php
 namespace App\Telegram\Commands;
 
+use App\ClassM;
 use App\Telegram\Conversation;
 use App\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
+use Longman\TelegramBot\Entities\Message;
+use Longman\TelegramBot\Entities\ServerResponse;
+use Longman\TelegramBot\Request;
 
 abstract class MagicCommand extends UserCommand{
 	/** @var Conversation */
@@ -30,11 +35,11 @@ abstract class MagicCommand extends UserCommand{
 		}
 		return $this->getMessage()->getFrom();
 	}
-	public function getMessage() {
+	public function getMessage(): Message{
 		if (($query = $this->getCallbackQuery()) instanceof CallbackQuery){
 			return $query->getMessage();
 		}
-		return parent::getMessage();
+		return parent::getMessage() ?? $this->getEditedMessage();
 	}
 	/** @var ?User */
 	static $user = null;
@@ -46,16 +51,36 @@ abstract class MagicCommand extends UserCommand{
 		}
 		return self::$user;
 	}
-	public function getClassId(): ?int{
-	    if($this->getMessage()->getChat()->isPrivateChat()) return $this->getUser()->class_owner;
-	    else{
-	        //TODO: implement
+    /** @var ?ClassM */
+    static $class = null;
+    public function getClass(): ?ClassM{
+        if(self::$class == null){
+            $id = $this->getMessage()->getChat()->getId();
+            self::$class = ClassM::where('chat_id', $id)->orWhere('user_owner',$this->getFrom()->getId())->first();
         }
-	    return null;
+        return self::$class;
+    }
+    public function sendMessage(array $data): ServerResponse{
+        return Request::sendMessage($data + [
+            'chat_id' => $this->getMessage()->getChat()->getId(),
+            'parse_mode' => 'markdown'
+        ]);
+    }
+	public function getClassId(): ?int{
+        return isset($this->getClass()->id) ? $this->getClass()->id : null;
     }
 	public function preExecute() {
 		dump(json_encode($this->getUser()));
 		App::setLocale($this->getUser()->lang);
+		if($this->private_only && !($msg = $this->getMessage())->getChat()->isPrivateChat()){
+		    Request::sendMessage([
+		        'reply_to_message_id' => $msg->getMessageId(),
+		        'text'=> __('tgbot.only_private'),
+                'parse_mode' => 'markdown',
+                'disable_notification' => true
+            ]);
+		    return;
+        }
 		return parent::preExecute();
 	}
 
