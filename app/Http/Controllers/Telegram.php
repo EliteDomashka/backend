@@ -13,6 +13,7 @@ use PhpTelegramBot\Laravel\PhpTelegramBotContract;
 class Telegram extends Controller {
     public function handle(PhpTelegramBotContract $bot){
     	error_reporting(E_ALL);
+    	dump(config('app.timezone'));
 //        date_default_timezone_set(config('app.timezone'));
     	try {
 	        MagicCommand::$user = null;

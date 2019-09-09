@@ -24,6 +24,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
+        
         $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
             'reply_markup' => Keyboard::forceReply()->setSelective(true)

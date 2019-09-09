@@ -50,7 +50,7 @@ class Week {
         return date('W');
     }
     
-	public static function getCurrentDeyOfWeek(): int {
+	public static function getCurrentDayOfWeek(): int {
 	    return Carbon::now()->dayOfWeekIso;
     }
 }
