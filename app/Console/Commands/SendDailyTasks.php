@@ -55,7 +55,8 @@ class SendDailyTasks extends Command{
         
         $week = Week::getCurrentWeek();
         $dayOfWeek = (Week::getCurrentDayOfWeek()+1 < 6) ? Week::getCurrentDayOfWeek() : 1;
-        
+        dump($week);
+            dump($dayOfWeek);
         $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner')
             ->where([
                 ['notify_time', '<=', $diff+60],
@@ -69,23 +70,28 @@ class SendDailyTasks extends Command{
                 ["class_id", "=", $chat['class_id']],
                 ['dayOfWeek', "=", $dayOfWeek]
             ])->where('week', $week)->first('message_id');
-            $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, false);
+            
+            $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true);
             
             dump(json_encode($tasks));
-            $resp = Request::sendMessage([
-                'chat_id' => $chat['notify_chat_id'] ?? $chat['user_owner'],
-                'text' => $tasks,
-                'parse_mode' => 'markdown'
-            ]);
-            
-            dump(json_encode($resp));
-            if($resp->isOk()) {
-                DB::table('daily_tasks')->insert([
-                    'class_id' => $chat['id'],
-                    'message_id' => $resp->getResult()->message_id,
-                    'dayOfWeek' => $dayOfWeek,
-                    'week' => $week
+            if(!isset($daily_task->message_id)){
+                $resp = Request::sendMessage([
+                    'chat_id' => $chat['notify_chat_id'] ?? $chat['user_owner'],
+                    'text' => $tasks,
+                    'parse_mode' => 'markdown'
                 ]);
+                
+                dump(json_encode($resp));
+                if($resp->isOk()) {
+                    DB::table('daily_tasks')->insert([
+                        'class_id' => $chat['class_id'],
+                        'message_id' => $resp->getResult()->message_id,
+                        'dayOfWeek' => $dayOfWeek,
+                        'week' => Week::getCurrentWeek()
+                    ]);
+                }else{
+                    dump($resp);
+                }
             }
         }
         

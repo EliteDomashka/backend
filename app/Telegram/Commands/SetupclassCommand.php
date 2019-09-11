@@ -166,6 +166,7 @@ class SetupclassCommand extends MagicCommand {
                 );
             }elseif ($action[1] == "complete"){
 		        $class = $this->getClass();
+		        
 		        if($class->notify_time !== null){
 		            if(isset($action[2]) && $action[2] == "usepared"){
 		                $class->notify_chat_id = $class->chat_id;

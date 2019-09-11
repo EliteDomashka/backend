@@ -42,6 +42,7 @@ class NewchatmembersCommand extends MagicCommand {
                 ]);
             }elseif(isset($conv->notes['notifyWaitAddToChat'])) {
                 /** @var ClassM $class */
+                dump($conv->notes['notifyWaitAddToChat']);
                 self::$class = $class = ClassM::where('id', $conv->notes['notifyWaitAddToChat'])->first();
                 $class->notify_chat_id = $chat_id;
                 $class->update();
