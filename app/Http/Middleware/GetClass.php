@@ -27,6 +27,6 @@ class GetClass
             
             if($class_id !== null) return $next($request);
         }
-        return response()->json(['message' => "{$host} not found"]);
+        return response()->json(['message' => "{$host} not found"])->setStatusCode(403);
     }
 }

@@ -4,6 +4,7 @@ require app_path('Telegram/Commands/TasksCommand.php');
 
 
 use App\ClassM;
+use App\DailyTask;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
@@ -54,7 +55,7 @@ class SendDailyTasks extends Command{
         dump(config('app.timezone'));
         
         $week = Week::getCurrentWeek();
-        $dayOfWeek = (Week::getCurrentDayOfWeek()+1 < 6) ? Week::getCurrentDayOfWeek() : 1;
+        $dayOfWeek = (Week::getCurrentDayOfWeek()+1 < 7) ? Week::getCurrentDayOfWeek()+1 : 1;
         dump($week);
             dump($dayOfWeek);
         $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner')
@@ -83,7 +84,7 @@ class SendDailyTasks extends Command{
                 
                 dump(json_encode($resp));
                 if($resp->isOk()) {
-                    DB::table('daily_tasks')->insert([
+                    DailyTask::insert([
                         'class_id' => $chat['class_id'],
                         'message_id' => $resp->getResult()->message_id,
                         'dayOfWeek' => $dayOfWeek,

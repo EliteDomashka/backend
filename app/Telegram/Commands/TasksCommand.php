@@ -14,10 +14,12 @@ use Longman\TelegramBot\Request;
 class TasksCommand extends MagicCommand {
     protected $name = 'tasks';
     protected $private_only = false;
+    protected $needclass = true;
 
     public function execute(){
-       $this->sendMessage($this->genMessage([], true, Week::getCurrentWeek()));
+       $this->sendMessage($this->genMessage([], false, Week::getCurrentWeek()));
     }
+    
     public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array{
         if($action[0] == "show") {
             if(isset($action[1]) && is_numeric($action[1])) $action[1] = (bool)(int)$action[1];
@@ -75,7 +77,7 @@ class TasksCommand extends MagicCommand {
         }
     
         foreach ($days as $day => $week){
-            $str .= "_".Week::getDayString($day)."_ ".(($forceShowDate || $currentWeek != $week) ? '('.Week::humanizeDayAndWeek($week, $day).')' : "").PHP_EOL;
+            $str .= "_".Week::getDayString($day)."_ ".(($forceShowDate || ($currentWeek != $week)) ? '('.Week::humanizeDayAndWeek($week, $day).')' : "").PHP_EOL;
             
             if(isset($tasks[$week][$day])){
                 foreach ($tasks[$week][$day] as $task) {

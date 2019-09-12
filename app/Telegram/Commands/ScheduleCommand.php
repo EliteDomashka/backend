@@ -13,6 +13,7 @@ use Longman\TelegramBot\Request;
 
 class ScheduleCommand extends MagicCommand{
 	protected $name = 'schedule';
+    protected $needclass = true;
 
 	public function execute() {
 		Request::sendMessage([
@@ -52,13 +53,7 @@ class ScheduleCommand extends MagicCommand{
 		);
 		return $edited;
 	}
-//	/** @return Carbon */
-//	public function getDT(){
-//		$dt = Carbon::now();
-//		$notes = $this->getConversation()->notes;
-//
-//		return $dt;
-//	}
+
 	public function genMsg(bool $full = false): string {
 		$day = ($dt = Carbon::now())->dayOfWeekIso;
 		$currentWeek = Week::getCurrentWeek();
