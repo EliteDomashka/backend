@@ -67,10 +67,10 @@ class SendDailyTasks extends Command{
         
         dump(json_encode($chats));
         foreach ($chats as $chat){
-            $daily_task = DB::table('daily_tasks')->select('message_id')->where([
+            $daily_task = DailyTask::select('message_id')->where([
                 ["class_id", "=", $chat['class_id']],
                 ['dayOfWeek', "=", $dayOfWeek]
-            ])->where('week', $week)->first('message_id');
+            ])->where('week', $week)->first();
             
             $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true);
             

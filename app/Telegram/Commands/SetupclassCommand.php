@@ -146,8 +146,12 @@ class SetupclassCommand extends MagicCommand {
                     new InlineKeyboardButton([
                         'text' => __('tgbot.notify.upd_chat'),
                         'callback_data' => 'setupclass_notify_chatupd'
+                    ]),
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => 'setupclass_notify'
                     ])
-                    
+                
                 );
             }elseif($action[1] == "chatupd"){
 		        return $edited + $this->getChatGetMsg();
@@ -233,7 +237,12 @@ class SetupclassCommand extends MagicCommand {
             ], $class->chat_id != null && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk() ? new InlineKeyboardButton([
                 'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
                 'callback_data' => 'setupclass_notify_complete_usepared'
-            ]) : null )
+            ]) : null,
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.back_button'),
+                    'callback_data' => 'setupclass_notify'
+                ])
+            ),
         ];
     }
 	public static function getInlineKeyboardNotifyComplete(): InlineKeyboard{

@@ -4,10 +4,7 @@ namespace App\Telegram\Commands;
 use App\ClassM;
 use App\Telegram\Conversation;
 use App\User;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\Message;
@@ -17,7 +14,7 @@ use Longman\TelegramBot\Request;
 abstract class MagicCommand extends UserCommand{
 	/** @var Conversation */
 	public $conversation;
-	protected $needclass = false;
+	public $needclass = false;
 
 	abstract public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array;
 	public function onMessage(): void {}

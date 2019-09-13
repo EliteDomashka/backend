@@ -13,7 +13,7 @@ use Longman\TelegramBot\Request;
 
 class ScheduleCommand extends MagicCommand{
 	protected $name = 'schedule';
-    protected $needclass = true;
+    public $needclass = true;
 
 	public function execute() {
 		Request::sendMessage([

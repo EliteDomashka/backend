@@ -45,7 +45,6 @@ class NewtaskCommand extends MagicCommand {
                 $currentWeek = Week::getCurrentWeek();
                 $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
                     return $query->where('title', $this->getMessage()->getText());
-//                    clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'title')
                 }, [$currentWeek, $currentWeek+1], true, true);
                 $send = [
                     'chat_id' => $this->getMessage()->getChat()->getId(),
