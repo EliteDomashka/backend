@@ -55,7 +55,7 @@ class SendDailyTasks extends Command{
         dump(config('app.timezone'));
         
         $week = Week::getCurrentWeek();
-        $dayOfWeek = (Week::getCurrentDayOfWeek()+1 < 7) ? Week::getCurrentDayOfWeek()+1 : 1;
+        $dayOfWeek =  Week::getCurrentDayOfWeek();
         dump($week);
             dump($dayOfWeek);
         $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner', 'chat_id') //chat_id для фикса
@@ -72,7 +72,7 @@ class SendDailyTasks extends Command{
                 ['dayOfWeek', "=", $dayOfWeek]
             ])->where('week', $week)->first();
             
-            $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true);
+            $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true, false);
             
             if(!isset($daily_task->message_id)){
                 $resp = Request::sendMessage([

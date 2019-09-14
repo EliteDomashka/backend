@@ -103,6 +103,10 @@ class SetupclassCommand extends MagicCommand {
                         'text' => __('tgbot.notify.edit_daily'),
                         'callback_data' => 'setupclass_notify_edit'
                     ]),
+                    $class->notify_time != null ? new InlineKeyboardButton([
+                        'text' => __('tgbot.notify.turn_off_daily'),
+                        'callback_data' => 'setupclass_notify_turnoff'
+                    ]) : null,
                     new InlineKeyboardButton([
                         'text' => __('tgbot.back_button'),
                         'callback_data' => 'settings_hi'
@@ -188,7 +192,15 @@ class SetupclassCommand extends MagicCommand {
                         ])
                     );
                 }else return [];
+            }elseif ($action[1] == "turnoff"){
+		        $class = $this->getClass();
+		        $class->notify_time = null;
+		        $class->save();
+            
+                $edited = $this->onCallback($callbackQuery, ['notify'], $edited);
                 
+                $anwser['text'] = 'turn off';
+                $anwser['show_alert'] = true;
             }
         }
 

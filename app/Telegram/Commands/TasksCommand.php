@@ -32,7 +32,7 @@ class TasksCommand extends MagicCommand {
     }
 
     protected function genMessage(array $base, bool $full, int $week): array {
-        $base['text'] = self::getTasks($this->getClassId(), $full, $week, null, true);
+        $base['text'] = self::getTasks($this->getClassId(), $full, $week, null, false);
         dump($week);
         $base['reply_markup'] = new InlineKeyboard(...[
             $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
@@ -42,8 +42,9 @@ class TasksCommand extends MagicCommand {
         return $base;
     }
     
-    public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int $dayOfWeek = null, bool $force = false, bool $forceShowDate = false) {
+    public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int $dayOfWeek = null, bool $force = false, bool $forceShowDate = false, bool $addThisDay = true) {
         $currentWeek = Week::getCurrentWeek();
+        dump($currentWeek);
         dump($week);
         if($week === null) $week = $currentWeek;
         if($dayOfWeek === null) $dayOfWeek = Week::getCurrentDayOfWeek();
@@ -52,7 +53,7 @@ class TasksCommand extends MagicCommand {
         if(!$full){
             if($week != $currentWeek && $week != $currentWeek+1) $dayOfWeek = 1;
             if($dayOfWeek >= 5){
-                $days[$dayOfWeek] = $week;
+                if($dayOfWeek < 7 && $addThisDay) $days[$dayOfWeek] = $week;
                 if($dayOfWeek > 5 && $dayOfWeek+1 < 7) $days[$dayOfWeek+1] = $week;
                 $days[1] = $week+1;
                 if($dayOfWeek > 6) $days[2] = $week+1;
@@ -61,12 +62,13 @@ class TasksCommand extends MagicCommand {
                 $days[$dayOfWeek+1] = $week;
             }
         } else {
-            if(!$force && ($currentWeek == $week)) $week = $dayOfWeek >= 5 ? $currentWeek+1 : $currentWeek;
+            if(!$force && ($currentWeek == $week)) $week = ($dayOfWeek >= 5 ? $currentWeek+1 : $currentWeek);
             for($day = 1; $day <= 6; $day++) {
                 $days[$day] = $week;
             }
         }
-
+    
+        dump(array_keys($days));
         dump(array_values($days));
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
             return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values);
