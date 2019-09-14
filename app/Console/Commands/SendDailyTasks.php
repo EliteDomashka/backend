@@ -58,9 +58,9 @@ class SendDailyTasks extends Command{
         $dayOfWeek = (Week::getCurrentDayOfWeek()+1 < 7) ? Week::getCurrentDayOfWeek()+1 : 1;
         dump($week);
             dump($dayOfWeek);
-        $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner')
+        $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner', 'chat_id') //chat_id для фикса
             ->where([
-                ['notify_time', '<=', $diff+60],
+                ['notify_time', '<=', $diff+90],
                 ['notify_time', '>=', $diff-60]
             ])
             ->get();
@@ -74,15 +74,29 @@ class SendDailyTasks extends Command{
             
             $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true);
             
-            dump(json_encode($tasks));
             if(!isset($daily_task->message_id)){
                 $resp = Request::sendMessage([
-                    'chat_id' => $chat['notify_chat_id'] ?? $chat['user_owner'],
+                    'chat_id' => $chat['notify_chat_id'] == null ? $chat['user_owner'] : $chat['notify_chat_id'],
                     'text' => $tasks,
                     'parse_mode' => 'markdown'
                 ]);
-                
-                dump(json_encode($resp));
+    
+                if($resp->getErrorCode() == 400){ //group to super group
+                    $migrate_to_chat_id = $resp->getProperty('parameters', ['migrate_to_chat_id' => null])['migrate_to_chat_id'];
+                    if($migrate_to_chat_id != null){
+                        if($chat['chat_id'] == $chat['notify_chat_id']){
+                            $chat['chat_id'] = $chat['notify_chat_id'] = $migrate_to_chat_id;
+                        }else{
+                            $chat['notify_chat_id']  = $migrate_to_chat_id;
+                        }
+                        
+                        ClassM::find($chat['class_id'])->update([
+                            'chat_id' => $chat['chat_id'],
+                            'notify_chat_id' => $chat['notify_chat_id']
+                        ]);
+                        return;
+                    }
+                }
                 if($resp->isOk()) {
                     DailyTask::insert([
                         'class_id' => $chat['class_id'],

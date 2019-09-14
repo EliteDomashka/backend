@@ -174,9 +174,13 @@ class SetupclassCommand extends MagicCommand {
 		        if($class->notify_time !== null){
 		            if(isset($action[2]) && $action[2] == "usepared"){
 		                $class->notify_chat_id = $class->chat_id;
-		                $class->update();
+                    }else{
+                        $class->notify_chat_id = null;
                     }
-		            $edited['text'] = __('tgbot.notify.finished');
+		            
+                    $class->update();
+            
+                    $edited['text'] = __('tgbot.notify.finished');
                     $edited['reply_markup'] = new InlineKeyboard(
                         new InlineKeyboardButton([
                             'text' => __('tgbot.back_toMain_button'),
@@ -201,14 +205,14 @@ class SetupclassCommand extends MagicCommand {
         $class->save();
         
         $this->sendMessage([
-            'text' => __('tgbot.notify.get_time_ok', ['time'=> $text]),
+            'text' => __('tgbot.notify.get_time_ok', ['time' => $text]),
             'reply_markup' => Keyboard::remove()
         ]);
         
         $conv = $this->getConversation();
         if(isset($conv->notes['isedit'])){
             $this->sendMessage([
-                'text' => "ok",
+                'text' => __('tgbot.notify.finished_time'),
                 'reply_markup' => new InlineKeyboard(
                     new InlineKeyboardButton([
                         'text' => __('tgbot.back_button'),
@@ -218,6 +222,8 @@ class SetupclassCommand extends MagicCommand {
             ]);
             return;
         }
+        $conv->setWaitMsg(false);
+        $conv->update();
         
         $this->sendMessage($this->getChatGetMsg());
 	}
@@ -225,23 +231,30 @@ class SetupclassCommand extends MagicCommand {
 	    $class = $this->getClass();
         return [
             'text' => __('tgbot.notify.get_chat'),
-            'reply_markup' => new InlineKeyboard([
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.notify.this_chat_button'),
-                    'callback_data' => 'setupclass_notify_complete'
-                ]),
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.notify.another_chat_button'),
-                    'callback_data' => 'setupclass_notify_selectchat'
-                ]),
-            ], $class->chat_id != null && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk() ? new InlineKeyboardButton([
-                'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
-                'callback_data' => 'setupclass_notify_complete_usepared'
-            ]) : null,
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.back_button'),
-                    'callback_data' => 'setupclass_notify'
-                ])
+            'reply_markup' => new InlineKeyboard(
+                [
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.notify.this_chat_button'),
+                        'callback_data' => 'setupclass_notify_complete'
+                    ]),
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.notify.another_chat_button'),
+                        'callback_data' => 'setupclass_notify_selectchat'
+                    ]),
+                ],
+                [
+                    (($class->chat_id != null && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk()) ?
+                        new InlineKeyboardButton([
+                            'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
+                            'callback_data' => 'setupclass_notify_complete_usepared'
+                        ]) : null)
+                ],
+                [
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => 'setupclass_notify_edit'
+                    ])
+                ]
             ),
         ];
     }
