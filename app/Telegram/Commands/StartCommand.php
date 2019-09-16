@@ -42,7 +42,7 @@ class StartCommand extends MagicCommand {
             $exp = explode('_', $cmd);
             
             if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
-                $data['text'] = __("tgbot.task.lined", ($task = Task::getById($task_id)) + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::humanize($task['tweek'])]);
+                $data['text'] = __("tgbot.task.lined", ($task = Task::getById($task_id)) + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::getDayString($task['day'])]);
 //                dump($data);
             }
         }

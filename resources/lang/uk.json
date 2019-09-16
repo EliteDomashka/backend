@@ -104,7 +104,7 @@
         "date_row": ":date (#:num у :weekday)",
         "saved": "Чудово, записав",
         "updated": "👌, оновив",
-        "lined": ":date (*:weekday*)\n :num.*:title*: _:desc_"
+        "lined": "*:weekday* (:date)\n :num.*:title*: _:task :desc_"
     },
     "confirm_yes": "ТАК",
     "tasks": {
