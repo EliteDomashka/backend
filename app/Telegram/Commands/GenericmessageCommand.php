@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Conversation;
+use App\Telegram\Helpers\TaskCropper;
 use Longman\TelegramBot\Entities\CallbackQuery;
 
 class GenericmessageCommand extends MagicCommand {
@@ -22,7 +23,7 @@ class GenericmessageCommand extends MagicCommand {
 		}elseif (($reply_msg = ($msg = $this->getMessage())->getReplyToMessage()) != null){
 		    $text = $this->getMessage()->getText();
 		    if(($symbol = mb_substr($text, 0, 1)) == "*" || $symbol == "*" || $symbol == "*"){
-                Task::where('chat_user_msg_id', $reply_msg->getMessageId())->where('author_id', $reply_msg->getFrom()->getId())->where('class_id', $this->getClassId())->update(['task' => mb_substr($text, 1)]);
+                Task::edit($this->getClassId(), $reply_msg->getMessageId(), $reply_msg->getFrom()->getId(), ...TaskCropper::crop(mb_substr($text, 1))); //TODO: write editor
                 $this->sendMessage([
                    'text' => __('tgbot.task.updated'),
                    'reply_to_message_id' => $msg->getMessageId()

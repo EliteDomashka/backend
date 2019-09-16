@@ -5,6 +5,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\TaskCropper;
 use Longman\TelegramBot\Entities\CallbackQuery;
 
 class EditedmessageCommand extends MagicCommand{
@@ -18,7 +19,7 @@ class EditedmessageCommand extends MagicCommand{
             $conv->update();
         }else if($this->getClassId() != null){
             if(($reply_msg = $msg->getReplyToMessage()) !== null){ //TODO: не надёжно мб придётся убрать но ЭТО ОПТИМИЗАЦИЯ!
-                Task::where('chat_user_msg_id', $msg->getMessageId())->where('author_id', $msg->getFrom()->getId())->update(['task' => $msg->getText()]); //if fined upd
+                Task::edit($this->getClassId(), $msg->getMessageId(), $msg->getFrom()->getId(), ...TaskCropper::crop($msg->getText()));
             }
         }
 

@@ -33,6 +33,12 @@ class Task extends Model{
                 'desc' => $desc,
             ]);
     }
+    public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
+        $base = Task::where('chat_user_msg_id', $chat_user_msg_id)->where('author_id', $author_id);
+        if($class_id != null) $base->where('class_id', $class_id);
+        
+        return $base->update(['task' => $task, 'desc' => $desc]);
+    }
 
     public static function getByWeek(?int $class_id, callable $queryCall, $week, bool $raw = false, $fullDesc = false){
         return Agenda::getScheduleForWeek($class_id, function ($query)use($week, $queryCall, $class_id, $fullDesc){
