@@ -2,7 +2,9 @@
 
 namespace Longman\TelegramBot\Commands\SystemCommands;
 
+use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\Week;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -17,30 +19,35 @@ class StartCommand extends MagicCommand {
 
 	public function execute() {
 		$message = $this->getMessage();
-		$data = [
-			'chat_id' => $message->getChat()->getId()
-		];
-
-		if($this->getClassId() === null){
-			$data = $data + [
-				'text'    => __('tgbot.start.hello'),
-				'parse_mode' => 'Markdown',
-				'reply_markup' => new InlineKeyboard(
-					new InlineKeyboardButton([
-						'text' => __('tgbot.start.hello_button'),
-						'callback_data' => 'start'
-					]),
-					new InlineKeyboardButton([
-						'text' => __('tgbot.settings.language_button'),
-						'callback_data' => 'settings_language_start'
-					])
-				)
-			];
+		$data = [];
+        if(($cmd = $message->getText(true)) == ""){
+            if($this->getClassId() === null){
+                $data = $data + [
+                    'text'    => __('tgbot.start.hello'),
+                    'reply_markup' => new InlineKeyboard(
+                        new InlineKeyboardButton([
+                            'text' => __('tgbot.start.hello_button'),
+                            'callback_data' => 'start'
+                        ]),
+                        new InlineKeyboardButton([
+                            'text' => __('tgbot.settings.language_button'),
+                            'callback_data' => 'settings_language_start'
+                        ])
+                    )
+                ];
+            }else{
+                $data = $this->genForPro($data);
+            }
 		}else{
-			$data = $this->genForPro($data);
-		}
+            $exp = explode('_', $cmd);
+            
+            if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
+                $data['text'] = __("tgbot.task.lined", ($task = Task::getById($task_id)) + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::humanize($task['tweek'])]);
+//                dump($data);
+            }
+        }
 
-		return Request::sendMessage($data);
+		return $this->sendMessage($data);
 	}
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
 		if(empty($action) && $this->getClassId() == null){

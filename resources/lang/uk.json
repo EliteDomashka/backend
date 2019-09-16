@@ -103,7 +103,8 @@
         "get_day": "Чудово, на який день?",
         "date_row": ":date (#:num у :weekday)",
         "saved": "Чудово, записав",
-        "updated": "👌, оновив"
+        "updated": "👌, оновив",
+        "lined": ":date (*:weekday*)\n :num.*:title*: _:desc_"
     },
     "confirm_yes": "ТАК",
     "tasks": {

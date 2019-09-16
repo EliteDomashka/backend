@@ -15,8 +15,9 @@ class Agenda extends Model {
     protected $fillable = ['class_id', 'day', 'num', 'lesson_id', 'week'];
     public $timestamps = false;
 
-    public static function getSchedule(int $class_id, bool $asTitle = true){
-    	$base =  Agenda::where('agenda.class_id', $class_id)->select('agenda.day', 'agenda.num' )->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
+    public static function getSchedule(?int $class_id, bool $asTitle = true){
+    	$base =  Agenda::select('agenda.day', 'agenda.num' )->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
+    	if($class_id != null) $base->where('agenda.class_id', $class_id);
     	if($asTitle){
             return $base->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->addSelect('lessons_id.title as title');
         }else{
@@ -32,7 +33,7 @@ class Agenda extends Model {
      * @param bool $asTitle
      * @return array|Collection
      */
-    public static function getScheduleForWeek(int $class_id, callable $query, $week = null, $raw = false, bool $asTitle = true) {
+    public static function getScheduleForWeek(?int $class_id, callable $query, $week = null, $raw = false, bool $asTitle = true) {
         if($week === null) $week = (int)date('W');
         if(is_array($week)){
             $week[] = -1;

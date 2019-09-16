@@ -71,7 +71,7 @@ class TasksCommand extends MagicCommand {
         dump(array_keys($days));
         dump(array_values($days));
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
-            return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values);
+            return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
         }, array_values($days), false);
         dump(array_keys($tasks));
         
@@ -92,7 +92,8 @@ class TasksCommand extends MagicCommand {
             if(isset($tasks[$lweek][$day])){
                 foreach ($tasks[$lweek][$day] as $task) {
                     ++$task['num'];
-                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']}_" . PHP_EOL; //TODO: add desc
+                    dump($task);
+                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']} ".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']})"). PHP_EOL;
                 }
             }else{
                 $str .= __('tgbot.schedule.empty').PHP_EOL;
