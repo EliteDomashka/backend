@@ -14,6 +14,8 @@ use Longman\TelegramBot\Entities\InlineKeyboardButton;
 
 class SettingsCommand extends MagicCommand {
 	public $name = 'settings';
+	public $private_only = true;
+	
 	public function execute() {}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
@@ -34,6 +36,15 @@ class SettingsCommand extends MagicCommand {
                     'callback_data' => 'setupclass_bindchat'
                 ]);
             }
+		    $keyboard[] = new InlineKeyboardButton([
+		       'text' => __('tgbot.notify.title'),
+               'callback_data' => 'setupclass_notify'
+            ]);
+		    $keyboard[] = new InlineKeyboardButton([
+                'text' => __('tgbot.back_toMain_button'),
+                'callback_data' => 'start'
+            ]);
+		    
 			$edited['text'] = __('tgbot.settings.title');
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'edit'){

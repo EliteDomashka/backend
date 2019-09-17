@@ -13,7 +13,8 @@ class UpdateClassesTable extends Migration{
     public function up() {
         Schema::table('classes', function (Blueprint $table) {
             $table->bigInteger('notify_chat_id')->nullable();
-            $table->smallInteger('notifyTime')->nullable();
+            $table->integer('notify_time')->nullable();
+            $table->boolean('notify_pin')->nullable();
         });
     }
 

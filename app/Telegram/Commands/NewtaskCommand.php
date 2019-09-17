@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use App\Agenda;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\TaskCropper;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -24,6 +25,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
+        
         $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
             'reply_markup' => Keyboard::forceReply()->setSelective(true)
@@ -44,7 +46,6 @@ class NewtaskCommand extends MagicCommand {
                 $currentWeek = Week::getCurrentWeek();
                 $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
                     return $query->where('title', $this->getMessage()->getText());
-//                    clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'title')
                 }, [$currentWeek, $currentWeek+1], true, true);
                 $send = [
                     'chat_id' => $this->getMessage()->getChat()->getId(),
@@ -185,7 +186,7 @@ class NewtaskCommand extends MagicCommand {
             $conv = $this->getConversation();
 	        $notes = &$conv->notes;
 	        
-	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), $notes['task']); //TODO: делить task на task и desc
+	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1]); //TODO: делить task на task и desc
 	        
             unset($notes['lesson']);
 	        unset($notes['task']);
@@ -249,10 +250,10 @@ class NewtaskCommand extends MagicCommand {
                 'text' => __('tgbot.task.chose_write'),
                 'callback_data' => "newtask_chose_byLesson"
             ]),
-            $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
-                'text' => __('tgbot.back_toMain_button'),
-                'callback_data' => 'start'
-            ]) : null
+//            $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
+//                'text' => __('tgbot.back_toMain_button'),
+//                'callback_data' => 'start'
+//            ]) : null
         ];
 	    if($this->getMessage()->getChat()->isPrivateChat()){
             $keyboard[] = new InlineKeyboardButton([

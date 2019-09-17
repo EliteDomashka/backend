@@ -4,10 +4,7 @@ namespace App\Telegram\Commands;
 use App\ClassM;
 use App\Telegram\Conversation;
 use App\User;
-use Carbon\Carbon;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\App;
-use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Commands\UserCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\Message;
@@ -17,6 +14,7 @@ use Longman\TelegramBot\Request;
 abstract class MagicCommand extends UserCommand{
 	/** @var Conversation */
 	public $conversation;
+	public $needclass = false;
 
 	abstract public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array;
 	public function onMessage(): void {}
@@ -72,6 +70,12 @@ abstract class MagicCommand extends UserCommand{
 	public function preExecute() {
 		dump(json_encode($this->getUser()));
 		App::setLocale($this->getUser()->lang);
+		
+		if($this->needclass){
+            if($this->getClassId() == null){
+                return $this->sendMessage(['text' => __('tgbot.error.fail_get_chat'), 'reply_to_message_id' => $this->getMessage()->getMessageId()]);
+            }
+        }
 		if($this->private_only && !($msg = $this->getMessage())->getChat()->isPrivateChat()){
 		    Request::sendMessage([
 		        'reply_to_message_id' => $msg->getMessageId(),
