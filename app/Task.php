@@ -34,7 +34,10 @@ class Task extends Model{
             ]);
     }
     public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
-        $base = Task::where('chat_user_msg_id', $chat_user_msg_id)->where('author_id', $author_id);
+        $base = Task::where([
+            ['chat_user_msg_id', $chat_user_msg_id],
+            ['author_id', $author_id]
+        ]);
         if($class_id != null) $base->where('class_id', $class_id);
         
         return $base->update(['task' => $task, 'desc' => $desc]);
