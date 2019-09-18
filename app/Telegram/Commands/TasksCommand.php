@@ -58,8 +58,9 @@ class TasksCommand extends MagicCommand {
                 $days[1] = $week+1;
                 if($dayOfWeek > 6) $days[2] = $week+1;
             }elseif ($dayOfWeek < 5){
-                $days[$dayOfWeek] = $week;
+                if($addThisDay) $days[$dayOfWeek] = $week;
                 $days[$dayOfWeek+1] = $week;
+                if(!$addThisDay) $days[$dayOfWeek+2] = $week;
             }
         } else {
             if(!$force && ($currentWeek == $week)) $week = ($dayOfWeek >= 5 ? $currentWeek+1 : $currentWeek);
