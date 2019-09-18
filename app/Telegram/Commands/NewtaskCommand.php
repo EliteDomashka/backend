@@ -13,6 +13,7 @@ use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
 use Longman\TelegramBot\Request;
+use phpDocumentor\Reflection\Types\Null_;
 
 class NewtaskCommand extends MagicCommand {
 	protected $name = 'newtask';
@@ -25,6 +26,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
+        if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
         
         $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
@@ -34,7 +36,38 @@ class NewtaskCommand extends MagicCommand {
 	}
 	public function onMessage(): void {
 		$conv = $this->getConversation();
-		if($conv->isWaitMsg() && ($this->getMessage()->getChat()->isPrivateChat() || !$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
+		dump($conv->notes);
+		if(isset($conv->notes['waitAttachment']) && $conv->notes['waitAttachment'] == true){
+            $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
+            
+            $msg = $this->getMessage();
+            dump($msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio());
+            $file = $msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio();
+            $send = [
+                "reply_to_message_id" => $msg->getMessageId(),
+                "reply_markup" => new InlineKeyboard(
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => 'newtask_step3'
+                    ])
+                )
+            ];
+            if($file != null){
+                if($file->getFileId() != null){
+                    $send['text'] = $file->getFileId();
+                    if (!isset($conv->notes['attachments']) || !is_array($conv->notes['attachments'])) $conv->notes['attachments'] = [];
+                    $conv->notes['attachments'][] = $file->getFileId();
+                    dump($conv->notes);
+                }else{
+                    $send['text'] = __('tgbot.tasks.wrong_attachment');
+                }
+            }else{
+                $send['text'] = __('tgbot.tasks.need_attachment');
+            }
+            
+            $this->sendMessage($send);
+        }else if($this->getMessage()->getChat()->isPrivateChat() || (!$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
+		    dump('ok');
             $conv->setWaitMsg(false);
             $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
 
@@ -48,7 +81,6 @@ class NewtaskCommand extends MagicCommand {
                     return $query->where('title', $this->getMessage()->getText());
                 }, [$currentWeek, $currentWeek+1], true, true);
                 $send = [
-                    'chat_id' => $this->getMessage()->getChat()->getId(),
                     'reply_to_message_id' => $conv->notes['msg_reply_id']
                 ];
                 if (!empty($result)){
@@ -167,8 +199,7 @@ class NewtaskCommand extends MagicCommand {
             $lesson = $conv->notes['lesson'] = Agenda::findNextLesson($this->getClassId(), $action[1], $action[2]);
             $conv->update();
 	        dump($lesson);
-	        $edited['text'] = __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $lesson['date'], 'day' => Week::getDayString($lesson['day'])]);
-	        $edited['reply_markup'] = $this->getFinishInlineKeyboard();
+            $edited = $edited + $this->genMsgAskConfirm();
         }elseif ($action[0] == "selectDay") {
             $conv = $this->getConversation();
 
@@ -176,22 +207,38 @@ class NewtaskCommand extends MagicCommand {
                 'day' => $day = $action[1],
                 'num' => $num = $action[2],
                 'week' => $week = $action[3],
-                'timestamp' => ($dt = Week::getDtByWeekAndDay($week, $day))->getTimestamp()
+                'timestamp' => ($dt = Week::getDtByWeekAndDay($week, $day))->getTimestamp(),
+                'date' => $dt->format('d.m.Y')
             ];
-            $edited['text'] = __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $dt->format('d.m.Y'), 'day' => Week::getDayString($day)]);
-            $edited['reply_markup'] = $this->getFinishInlineKeyboard();
             $conv->update();
+            
+            $edited = $edited + $this->genMsgAskConfirm();
 
+        }elseif ($action[0] == "attachment"){
+	        $conv = $this->getConversation();
+        
+            $conv->notes['waitAttachment'] = true;
+	        $conv->setWaitMsg(true);
+	        $conv->update();
+	        
+	        $edited['text'] = __('tgbot.task.wait_attachment');
+	        $edited['reply_markup'] = new InlineKeyboard(
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.back_button'),
+                    'callback_data' => 'newtask_step3'
+                ])
+            );
         }elseif ($action[0] == "save") {
             $conv = $this->getConversation();
 	        $notes = &$conv->notes;
 	        
-	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1]); //TODO: делить task на task и desc
+	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1], isset($notes['attachments']) ? $notes['attachments'] : []);
 	        
             unset($notes['lesson']);
 	        unset($notes['task']);
 	        unset($notes['task_input_id']);
 	        unset($notes['msg_reply_id']);
+	        if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
 	        $conv->update();
 	        
             $edited['text'] = __('tgbot.task.saved');
@@ -207,6 +254,8 @@ class NewtaskCommand extends MagicCommand {
             );
         }elseif ($action[0] == "step2"){
 	        return $edited + $this->genTaskAcceptedMsg();
+        }elseif ($action[0] == 'step3'){
+	        return $edited + $this->genMsgAskConfirm();
         }elseif ($action[0] == "hi"){
             Request::deleteMessage($edited);
             $this->execute();
@@ -235,10 +284,21 @@ class NewtaskCommand extends MagicCommand {
                 'callback_data' => 'newtask_save'
             ]),
             new InlineKeyboardButton([
+               'text' => __('tgbot.task.add_attachment'),
+               'callback_data' => "newtask_attachment"
+            ]),
+            new InlineKeyboardButton([
                 'text' => __('tgbot.back_button'),
                 'callback_data' => 'newtask_step2'
             ])
         );
+    }
+    private function genMsgAskConfirm(){
+	    $conv = $this->getConversation();
+	    return [
+	        'text' =>  __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $conv->notes['lesson']['date'], 'day' => Week::getDayString($conv->notes['lesson']['day'])]),
+            'reply_markup' => $this->getFinishInlineKeyboard()
+        ];
     }
 	private function genTaskAcceptedMsg(){
 	    $keyboard = [
