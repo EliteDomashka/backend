@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Events\TaskEdited;
 use App\Telegram\Helpers\TaskCropper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,15 @@ class Task extends Model{
         ]);
         if($class_id != null) $base->where('class_id', $class_id);
         
-        return $base->update(['task' => $task, 'desc' => $desc]);
+        /** @var $taskM Task  */
+        $taskM = $base->first();
+    
+        $taskM->task = $task;
+        $taskM->desc = $desc;
+        
+        $resp = $taskM->save();
+        event(new TaskEdited($taskM));
+        return $resp;
     }
 
     public static function getByWeek(?int $class_id, callable $queryCall, $week, bool $raw = false, $fullDesc = false){

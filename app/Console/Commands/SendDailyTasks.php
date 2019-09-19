@@ -53,11 +53,7 @@ class SendDailyTasks extends Command{
         $diff = $startdt->diffInSeconds($dt);
         dump($diff);
         dump(config('app.timezone'));
-        
-        $week = Week::getCurrentWeek();
-        $dayOfWeek =  Week::getCurrentDayOfWeek();
-        dump($week);
-            dump($dayOfWeek);
+
         $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner', 'chat_id') //chat_id для фикса
             ->where([
                 ['notify_time', '<=', $diff+90],
@@ -67,16 +63,23 @@ class SendDailyTasks extends Command{
         
         dump(json_encode($chats));
         foreach ($chats as $chat){
-            $daily_task = DailyTask::select('message_id')->where([
-                ["class_id", "=", $chat['class_id']],
-                ['dayOfWeek', "=", $dayOfWeek]
-            ])->where('week', $week)->first();
+            $week = Week::getCurrentWeek();
+            $dayOfWeek = Week::getCurrentDayOfWeek();
             
             $tasks = TasksCommand::getTasks($chat['class_id'], false, $week, $dayOfWeek, false, true, false);
+            dump($week);
+            dump($dayOfWeek);
+            $daily_task = DailyTask::select('message_id')->where([
+                ["class_id", "=", $chat['class_id']],
+                ['dayOfWeek', "=", $dayOfWeek],
+                ['week', $week]
+            ])->first();
+            
             
             if(!isset($daily_task->message_id)){
+                $chat_id = $chat['notify_chat_id'] == null ? $chat['user_owner'] : $chat['notify_chat_id'];
                 $resp = Request::sendMessage([
-                    'chat_id' => $chat['notify_chat_id'] == null ? $chat['user_owner'] : $chat['notify_chat_id'],
+                    'chat_id' => $chat_id,
                     'text' => $tasks,
                     'parse_mode' => 'markdown'
                 ]);
@@ -100,9 +103,10 @@ class SendDailyTasks extends Command{
                 if($resp->isOk()) {
                     DailyTask::insert([
                         'class_id' => $chat['class_id'],
+                        'chat_id' => $chat_id,
                         'message_id' => $resp->getResult()->message_id,
                         'dayOfWeek' => $dayOfWeek,
-                        'week' => Week::getCurrentWeek()
+                        'week' => $week
                     ]);
                 }else{
                     dump($resp);
