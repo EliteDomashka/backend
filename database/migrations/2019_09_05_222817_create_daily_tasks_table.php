@@ -15,6 +15,7 @@ class CreateDailyTasksTable extends Migration
     {
         Schema::create('daily_tasks', function (Blueprint $table) {
             $table->bigIncrements('id');
+            $table->bigInteger('chat_id');
             $table->bigInteger('class_id');
             $table->bigInteger('message_id');
             $table->smallInteger('week');

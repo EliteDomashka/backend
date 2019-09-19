@@ -32,7 +32,7 @@ class TasksCommand extends MagicCommand {
     }
 
     protected function genMessage(array $base, bool $full, int $week): array {
-        $base['text'] = self::getTasks($this->getClassId(), $full, $week, null, false);
+        $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek = null, false);
         dump($week);
         $base['reply_markup'] = new InlineKeyboard(...[
             $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
@@ -42,7 +42,7 @@ class TasksCommand extends MagicCommand {
         return $base;
     }
     
-    public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int $dayOfWeek = null, bool $force = false, bool $forceShowDate = false, bool $addThisDay = true) {
+    public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int &$dayOfWeek = null, bool $force = false, bool $forceShowDate = false, bool $addThisDay = true) {
         $currentWeek = Week::getCurrentWeek();
         dump($currentWeek);
         dump($week);
@@ -69,6 +69,9 @@ class TasksCommand extends MagicCommand {
             }
         }
     
+        $week = array_values($days)[0];
+        $dayOfWeek = array_keys($days)[0];
+        
         dump(array_keys($days));
         dump(array_values($days));
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
