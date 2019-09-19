@@ -30,7 +30,7 @@ class SettingsCommand extends MagicCommand {
                     'text' => __('tgbot.settings.language_button'),
                     'callback_data' => 'settings_language_start'
                 ])];
-		    if($this->getClass()->user_owner == $this->getUser()->id && $this->getClass()->chat_id != $this->getMessage()->getChat()->getId()){
+		    if($this->getClass()->user_owner == $this->getUser()->id && $this->getClass()->chat_id == null){
 		        $keyboard[] = new InlineKeyboardButton([
                     'text' => __('tgbot.settings.connect_chat_title'),
                     'callback_data' => 'setupclass_bindchat'
@@ -69,7 +69,12 @@ class SettingsCommand extends MagicCommand {
 						new InlineKeyboardButton([
 							'text' => __('tgbot.settings.schedule_get_next', ['week_str' => Week::humanize($week+1)]),
 							'callback_data' => 'settings_edit_schedule_next'
-						])
+						]),
+                        new InlineKeyboardButton([
+                                'text' => __('tgbot.back_button'),
+                                'callback_data' => 'settings_hi'
+                        ])
+                        
 					);
 				}else{
 					$week = Carbon::now()->weekOfYear;
