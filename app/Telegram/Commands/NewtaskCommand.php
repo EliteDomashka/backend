@@ -26,7 +26,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
-        if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
+        if(isset($conv->notes['waitAttachment'])) unset($conv->notes['waitAttachment']);
         
         $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
@@ -59,10 +59,10 @@ class NewtaskCommand extends MagicCommand {
                     $conv->notes['attachments'][] = $file->getFileId();
                     dump($conv->notes);
                 }else{
-                    $send['text'] = __('tgbot.tasks.wrong_attachment');
+                    $send['text'] = __('tgbot.task.wrong_attachment');
                 }
             }else{
-                $send['text'] = __('tgbot.tasks.need_attachment');
+                $send['text'] = __('tgbot.task.need_attachment');
             }
             
             $this->sendMessage($send);
@@ -219,6 +219,7 @@ class NewtaskCommand extends MagicCommand {
         
             $conv->notes['waitAttachment'] = true;
 	        $conv->setWaitMsg(true);
+	        $conv->setCommand($this);
 	        $conv->update();
 	        
 	        $edited['text'] = __('tgbot.task.wait_attachment');

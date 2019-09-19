@@ -24,7 +24,7 @@ class CreateTasksTable extends Migration
     
             $table->timestamps();
         });
-        \Illuminate\Support\Facades\DB::statement('ALTER TABLE tasks ADD attachments bigint[]');
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE tasks ADD attachments text[]');
     }
 
     /**
