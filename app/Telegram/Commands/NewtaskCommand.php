@@ -18,7 +18,8 @@ use phpDocumentor\Reflection\Types\Null_;
 class NewtaskCommand extends MagicCommand {
 	protected $name = 'newtask';
 	protected $private_only = false;
-
+ 
+	const ATTACHMENT_LIMIT = 5;
 
 	public function execute() {
 		$conv = $this->getConversation();
@@ -36,12 +37,10 @@ class NewtaskCommand extends MagicCommand {
 	}
 	public function onMessage(): void {
 		$conv = $this->getConversation();
-		dump($conv->notes);
 		if(isset($conv->notes['waitAttachment']) && $conv->notes['waitAttachment'] == true){
             $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
             
             $msg = $this->getMessage();
-            dump($msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio());
             $file = $msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio();
             $send = [
                 "reply_to_message_id" => $msg->getMessageId(),
@@ -54,10 +53,21 @@ class NewtaskCommand extends MagicCommand {
             ];
             if($file != null){
                 if($file->getFileId() != null){
-                    $send['text'] = $file->getFileId();
                     if (!isset($conv->notes['attachments']) || !is_array($conv->notes['attachments'])) $conv->notes['attachments'] = [];
-                    $conv->notes['attachments'][] = $file->getFileId();
-                    dump($conv->notes);
+    
+                    if(count($conv->notes['attachments']) < self::ATTACHMENT_LIMIT) {
+                        $send['text'] = __('tgbot.task.attachment_accepted');
+                        $send['reply_markup'] = new InlineKeyboard(
+                            new InlineKeyboardButton([
+                                'text' => __('tgbot.task.attachment_accepted_button'),
+                                'callback_data' => 'newtask_step3'
+                            ])
+                        );
+                        $conv->notes['attachments'][] = $file->getFileId();
+                        $conv->update();
+                    }else{
+                        $send['text'] = __('tgbot.task.attachment_limit', ['attachments' => self::ATTACHMENT_LIMIT]);
+                    }
                 }else{
                     $send['text'] = __('tgbot.task.wrong_attachment');
                 }
@@ -222,24 +232,24 @@ class NewtaskCommand extends MagicCommand {
 	        $conv->setCommand($this);
 	        $conv->update();
 	        
+	        Request::deleteMessage($edited);
+	        
 	        $edited['text'] = __('tgbot.task.wait_attachment');
-	        $edited['reply_markup'] = new InlineKeyboard(
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.back_button'),
-                    'callback_data' => 'newtask_step3'
-                ])
-            );
+	        $edited['reply_markup'] = Keyboard::forceReply();
+	        Request::sendMessage($edited);
+	        return [];
         }elseif ($action[0] == "save") {
             $conv = $this->getConversation();
 	        $notes = &$conv->notes;
 	        
 	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1], isset($notes['attachments']) ? $notes['attachments'] : []);
-	        
+
             unset($notes['lesson']);
 	        unset($notes['task']);
 	        unset($notes['task_input_id']);
 	        unset($notes['msg_reply_id']);
-	        if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
+            if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
+            if(isset($notes['attachments'])) unset($notes['attachments']);
 	        $conv->update();
 	        
             $edited['text'] = __('tgbot.task.saved');

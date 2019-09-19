@@ -19,10 +19,10 @@ class Task extends Model{
     protected $table = 'tasks';
     public $timestamps = true;
     public $incrementing = true;
-    protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id'];
+    protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id', "attachments"];
 
     public static function add(int $class_id, int $author_id, int $msg_id, int $lesson_num, int $dayOfWeek, int $week, string $task, string $desc = null, array $attachments = []): Task {
-            return Task::create([
+        return Task::create([
                 'num' => $lesson_num,
                 'day' => $dayOfWeek,
                 'week' => $week,
@@ -31,7 +31,7 @@ class Task extends Model{
                 'chat_user_msg_id' => $msg_id,
                 'class_id' => $class_id,
                 'desc' => $desc,
-                'attachments' => '{'.implode(", ", $attachments).'}'
+                'attachments' => '{'.substr(json_encode($attachments), 1, -1).'}'
             ]);
     }
     public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
