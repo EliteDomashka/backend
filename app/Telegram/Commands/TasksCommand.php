@@ -32,7 +32,8 @@ class TasksCommand extends MagicCommand {
     }
 
     protected function genMessage(array $base, bool $full, int $week): array {
-        $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek = null, false);
+        $dayOfWeek = null;
+        $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek, false);
         dump($week);
         $base['reply_markup'] = new InlineKeyboard(...[
             $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
