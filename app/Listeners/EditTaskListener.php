@@ -10,14 +10,6 @@ use Longman\TelegramBot\Commands\UserCommands\TasksCommand;
 use Longman\TelegramBot\Request;
 
 class EditTaskListener{
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct() {
-        //
-    }
 
     /**
      * Handle the event.

@@ -33,7 +33,7 @@ class TasksCommand extends MagicCommand {
 
     protected function genMessage(array $base, bool $full, int $week): array {
         $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek = null, false);
-        dump($week);
+
         $base['reply_markup'] = new InlineKeyboard(...[
             $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
             [new InlineKeyboardButton(['text' => __('tgbot.tasks.prev_week'), 'callback_data' => "tasks_show_{$full}_".($week-1)]), new InlineKeyboardButton(['text' => __('tgbot.tasks.next_week'), 'callback_data' => "tasks_show_{$full}_".($week+1)])],
@@ -44,8 +44,7 @@ class TasksCommand extends MagicCommand {
     
     public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int &$dayOfWeek = null, bool $force = false, bool $forceShowDate = false, bool $addThisDay = true) {
         $currentWeek = Week::getCurrentWeek();
-        dump($currentWeek);
-        dump($week);
+
         if($week === null) $week = $currentWeek;
         if($dayOfWeek === null) $dayOfWeek = Week::getCurrentDayOfWeek();
     
@@ -72,12 +71,11 @@ class TasksCommand extends MagicCommand {
         $week = array_values($days)[0];
         $dayOfWeek = array_keys($days)[0];
         
-        dump(array_keys($days));
-        dump(array_values($days));
+
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
             return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
         }, array_values($days), false);
-        dump(array_keys($tasks));
+
         
         
         $str = "";
@@ -96,7 +94,6 @@ class TasksCommand extends MagicCommand {
             if(isset($tasks[$lweek][$day])){
                 foreach ($tasks[$lweek][$day] as $task) {
                     ++$task['num'];
-                    dump($task);
                     $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']} ".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']})"). PHP_EOL;
                 }
             }else{
