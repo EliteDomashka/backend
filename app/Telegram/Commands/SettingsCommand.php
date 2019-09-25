@@ -30,10 +30,10 @@ class SettingsCommand extends MagicCommand {
                     'text' => __('tgbot.settings.language_button'),
                     'callback_data' => 'settings_language_start'
                 ])];
-		    if($this->getClass()->user_owner == $this->getUser()->id && $this->getClass()->chat_id == null){
+		    if($this->getClass()->user_owner == $this->getUser()->id && ($this->getClass()->chat_id == null || $this->getClass()->chat_id == $this->getUser()->id)){
 		        $keyboard[] = new InlineKeyboardButton([
                     'text' => __('tgbot.settings.connect_chat_title'),
-                    'callback_data' => 'setupclass_bindchat'
+                    'callback_data' => 'setupclass_bindchat_hi'
                 ]);
             }
 		    $keyboard[] = new InlineKeyboardButton([

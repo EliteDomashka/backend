@@ -89,6 +89,18 @@ class SetupclassCommand extends MagicCommand {
                 $callbackQuery->answer($anwser);
             
                 return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
+            }else if ($action[1] == 'hi'){
+		        $edited['text'] = __('tgbot.class.bind_chat_desc');
+		        $edited['reply_markup'] = new InlineKeyboard(
+		            new InlineKeyboardButton([
+		                'text' => __('tgbot.confirm_yes'),
+                        'callback_data' => "setupclass_bindchat"
+                    ]),
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => "settings_hi"
+                    ])
+                );
             }
         }elseif ($action[0] == "notify"){
 		    
