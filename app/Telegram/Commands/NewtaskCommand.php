@@ -67,7 +67,7 @@ class NewtaskCommand extends MagicCommand {
                                 if(!isset($data[$hash])) $data[$week][$hash] = $lesson;
 
                             }
-                        }elseif(isset($data[$week-1])){ //если $week это $currentWeek+1и его нет, по сути if($currentWeek+1 && !isset($result[$currentWeek+1]))
+                        }else{
                             //берйм данные от -1 и дублируем для этой недели
                             $data[$week] = $data[-1];
                             foreach ($data[$week] as &$val){
