@@ -210,6 +210,7 @@ class NewtaskCommand extends MagicCommand {
         }elseif ($action[0] == "hi"){
             Request::deleteMessage($edited);
             $this->execute();
+            return [];
         }
         return $edited;
 	}

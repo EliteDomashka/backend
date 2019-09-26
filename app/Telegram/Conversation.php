@@ -59,7 +59,7 @@ class Conversation {
 		$stream->putBool($this->waitMsg);
 		$stream->put(function_exists('igbinary_serialize') ? igbinary_serialize($this->notes) : serialize($this->notes));
 
-		Redis::pSetEx($this->getKey(), 3600000,  $stream->buffer); //TODO: поставить нормлаьний tts, сам не знаб сколько здесь
+		Redis::pSetEx($this->getKey(), 36000000,  $stream->buffer); //TODO: поставить нормлаьний tts, сам не знаб сколько здесь
 	}
 
 	public function stop(){

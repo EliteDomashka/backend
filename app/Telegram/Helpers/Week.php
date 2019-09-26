@@ -5,7 +5,7 @@ namespace App\Telegram\Helpers;
 use Carbon\Carbon;
 
 class Week {
-	public static $days= [
+	public static $days = [
 		1 => "Понеділок",
 		2 => "Вівторок",
 		3 => "Середа",

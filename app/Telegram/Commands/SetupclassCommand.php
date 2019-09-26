@@ -3,6 +3,7 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 
 use App\ClassM;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\InlineKeyboardCleaner;
 use App\User;
 use Carbon\Carbon;
 use Longman\TelegramBot\Entities\CallbackQuery;
@@ -107,7 +108,7 @@ class SetupclassCommand extends MagicCommand {
 		    if(!isset($action[1])){
 		        $class = $this->getClass();
 		        $edited['text'] = __('tgbot.notify.title');
-		        $edited['reply_markup'] = new InlineKeyboard(
+		        $edited['reply_markup'] = new InlineKeyboardCleaner(
 		            $class->notify_time == null ? new InlineKeyboardButton([
 		                'text' => __('tgbot.notify.turn_on_daily'),
                         'callback_data' => 'setupclass_notify_turnon'
