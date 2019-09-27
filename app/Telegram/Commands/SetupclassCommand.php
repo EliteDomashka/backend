@@ -256,7 +256,7 @@ class SetupclassCommand extends MagicCommand {
 	    $class = $this->getClass();
         return [
             'text' => __('tgbot.notify.get_chat'),
-            'reply_markup' => new InlineKeyboard(
+            'reply_markup' => new InlineKeyboardCleaner(
                 [
                     new InlineKeyboardButton([
                         'text' => __('tgbot.notify.this_chat_button'),
