@@ -15,7 +15,7 @@ class Week {
 	];
 
 	public static function getDayString($day) :?string {
-		return self::$days[$day];
+		return isset(self::$days[$day]) ? self::$days[$day] : null;
 	}
 
 	/**
