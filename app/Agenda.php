@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Telegram\Helpers\Week;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
@@ -33,12 +34,15 @@ class Agenda extends Model {
      * @param bool $asTitle
      * @return array|Collection
      */
-    public static function getScheduleForWeek(?int $class_id, callable $query, $week = null, $raw = false, bool $asTitle = true) {
-        if($week === null) $week = (int)date('W');
+    public static function getScheduleForWeek(?int $class_id, callable $query, $week = -1, $raw = false, bool $asTitle = true) {
+        if($week === -1) $week = Week::getCurrentWeek();
         if(is_array($week)){
             $week[] = -1;
         }
-        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('agenda.week')->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week))->get();
+        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('agenda.week'));
+        if($week != null) $lessons = $lessons->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week);
+        $lessons = $lessons->get();
+
         $new = [];
         foreach ($lessons as $lesson){
             $_week = $lesson['week'];
@@ -54,11 +58,12 @@ class Agenda extends Model {
                 $new[$_week][] = $lesson->toArray();
             }
         }
+
         $lessons = $new;
         if(is_array($week)) return $lessons;
         if(empty($lessons)) return [];
 
-        return $lessons[isset($lessons[$week]) ? $week : (isset($lessons[-1]) ? -1 : null)];
+        return $lessons[isset($lessons[$week]) ? $week : (isset($lessons[-1]) ? -1 : ($week == null ? array_keys($lessons)[0] : null))];
     }
 
     public static function findNextLesson(int $class_id, int $day, int $num): array {
