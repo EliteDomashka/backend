@@ -80,10 +80,21 @@ class TasksCommand extends MagicCommand {
         
         dump(array_keys($days));
         dump(array_values($days));
+
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
-            return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
-        }, array_values($days), false);
-        dump(array_keys($tasks));
+            return $query->where(function ($q)use($days){
+                $firstDay = array_keys($days)[0];
+                foreach ($days as $day => $week){
+                    $call = ($firstDay == $day ? 'where' : 'orWhere');
+                    $q->{$call}(function ($query2)use($day, $week){
+                        $query2->whereIn('agenda.week', [$week, -1])->where('agenda.day', $day)->where('tasks.week', $week)->where('tasks.day', $day);
+                    });
+                }
+                return $q;
+            })->addSelect('tasks.id');
+        }, null, false);
+
+        dump($tasks);
         
         
         $str = "";

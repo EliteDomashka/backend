@@ -34,12 +34,12 @@ class Agenda extends Model {
      * @param bool $asTitle
      * @return array|Collection
      */
-    public static function getScheduleForWeek(?int $class_id, callable $query, $week = -1, $raw = false, bool $asTitle = true) {
+    public static function getScheduleForWeek(?int $class_id, callable $query, ?int $week = -1, $raw = false, bool $asTitle = true) {
         if($week === -1) $week = Week::getCurrentWeek();
         if(is_array($week)){
             $week[] = -1;
         }
-        $lessons = $query(Agenda::getSchedule($class_id, $asTitle)->addSelect('agenda.week'));
+        $lessons = $query(Agenda::getSchedule($class_id, $asTitle))->addSelect('agenda.week');
         if($week != null) $lessons = $lessons->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week);
         $lessons = $lessons->get();
 
@@ -60,7 +60,7 @@ class Agenda extends Model {
         }
 
         $lessons = $new;
-        if(is_array($week)) return $lessons;
+        if(is_array($week) || $week == null) return $lessons;
         if(empty($lessons)) return [];
 
         return $lessons[isset($lessons[$week]) ? $week : (isset($lessons[-1]) ? -1 : ($week == null ? array_keys($lessons)[0] : null))];

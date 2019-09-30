@@ -75,8 +75,17 @@ class ScheduleCommand extends MagicCommand{
 			}
 		}
         $schedule = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($getdays){
-		    return $query->whereIn('day', array_keys($getdays));
-        }, array_values($getdays));
+		    return $query->where(function ($q)use($getdays){
+                    $firstDay = array_keys($getdays)[0];
+                    foreach ($getdays as $day => $week){
+                        $call = ($firstDay == $day ? 'where' : 'orWhere');
+                        $q->{$call}(function ($query2)use($day, $week){
+                            $query2->whereIn('agenda.week', [$week, -1])->where('agenda.day', $day);
+                        });
+                    }
+                    return $q;
+                });
+        }, null);
 
 		$str = "";
 		foreach ($getdays as $day => $week){

@@ -44,9 +44,10 @@ class NewtaskCommand extends MagicCommand {
                 $this->sendMessage($this->genTaskAcceptedMsg());
             }elseif(isset($conv->notes['wait_lesson'])){
                 $currentWeek = Week::getCurrentWeek();
-                $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
-                    return $query->where('title', $this->getMessage()->getText());
-                }, [$currentWeek, $currentWeek+1], true, true);
+                $result = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($currentWeek){
+                    return $query->where('title', $this->getMessage()->getText())->whereIn('agenda.week', [$currentWeek, $currentWeek+1, -1]);
+                }, null, true, true);
+
                 $send = [
                     'chat_id' => $this->getMessage()->getChat()->getId(),
                     'reply_to_message_id' => $conv->notes['msg_reply_id']
@@ -219,7 +220,7 @@ class NewtaskCommand extends MagicCommand {
         $co = 0;
         $lessons = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
             return $query->clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title'); // сюда не над добавляить week ЭТО фича
-        }, null, true);
+        }, -1, true, true);
         $c = count($lessons);
         for ($i = 0; $i < $c; $i++){
             if($i % 3 == 0) $co++;
