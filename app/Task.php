@@ -34,6 +34,16 @@ class Task extends Model{
                 'desc' => $desc,
             ]);
     }
+    
+    public static function exists(int $class_id, int $week, int $dayOfWeek, int $lesson_num){
+        return Task::where([
+            ['class_id', $class_id],
+            ['week', $week],
+            ['day', $dayOfWeek],
+            ['num', $lesson_num]
+        ])->exists();
+    }
+    
     public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
         $base = Task::where([
             ['chat_user_msg_id', $chat_user_msg_id],
@@ -51,8 +61,17 @@ class Task extends Model{
         event(new TaskEdited($taskM));
         return $resp;
     }
-
-    public static function getByWeek(?int $class_id, callable $queryCall, $week, bool $raw = false, $fullDesc = false){
+    
+    /**
+     *  Магичиская функция котороя дополянет Agenda::getScheduleForWeek и выдаёт уже с дз
+     *
+     * @param int|null $class_id индификатор класса, принимат null дабы можно было получать по tasks.id
+     * @param callable $queryCall
+     * @param int|null $week
+     * @param bool $raw
+     * @param bool $fullDesc
+     * @return array|\Illuminate\Support\Collection
+     */
     public static function getByWeek(?int $class_id, callable $queryCall, ?int $week, bool $raw = false, $fullDesc = false){
         return Agenda::getScheduleForWeek($class_id, function ($query)use($week, $queryCall, $class_id, $fullDesc){
             $base = $query->join('tasks', function ($join)use($week){
