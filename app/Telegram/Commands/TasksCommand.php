@@ -16,9 +16,9 @@ class TasksCommand extends MagicCommand {
     protected $name = 'tasks';
     protected $private_only = false;
     public $needclass = true;
-
+    
     public function execute(){
-       $this->sendMessage($this->genMessage([], false, Week::getCurrentWeek()));
+        $this->sendMessage($this->genMessage([], false, Week::getCurrentWeek()));
     }
     
     public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array{
@@ -27,15 +27,17 @@ class TasksCommand extends MagicCommand {
             if(isset($action[2]) && is_numeric($action[2])) $action[2] = (int)$action[2];
             if(isset($action[3]) && is_bool($action[3])) $action[3] = (bool)(int)$action[3];
             $callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
-
+            
             return $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
         }
         return [];
     }
-
+    
     protected function genMessage(array $base, bool $full, int $week, bool $force = false): array {
         $dayOfWeek = null;
         $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek, $force);
+        dump($week);
+        dump($force);
         $base['reply_markup'] = new InlineKeyboard(...[
             $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => "tasks_show_0_{$week}_{$force}"]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => "tasks_show_1_{$week}_{$force}"] ),
             [new InlineKeyboardButton(['text' => __('tgbot.tasks.prev_week'), 'callback_data' => "tasks_show_{$full}_".($week-1)."_1"]), new InlineKeyboardButton(['text' => __('tgbot.tasks.next_week'), 'callback_data' => "tasks_show_{$full}_".($week+1)."_1"])],
@@ -46,10 +48,11 @@ class TasksCommand extends MagicCommand {
     
     public static function getTasks(int $class_id, bool $full, ?int &$week = null, ?int &$dayOfWeek = null, bool $force = false, bool $forceShowDate = false, bool $addThisDay = true) {
         $currentWeek = Week::getCurrentWeek();
-
+        dump($currentWeek);
+        dump($week);
         if($week === null) $week = $currentWeek;
         if($dayOfWeek === null) $dayOfWeek = Week::getCurrentDayOfWeek();
-    
+        
         $days = [];
         if(!$full){
             if($week != $currentWeek && $week != $currentWeek+1) $dayOfWeek = 1;
@@ -71,15 +74,28 @@ class TasksCommand extends MagicCommand {
                 $days[$day] = $week;
             }
         }
-    
+        
         $week = array_values($days)[0];
         $dayOfWeek = array_keys($days)[0];
         
-
+        dump(array_keys($days));
+        dump(array_values($days));
+        
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
-            return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
-        }, array_values($days), false);
-
+            return $query->where(function ($q)use($days){
+                $firstDay = array_keys($days)[0];
+                foreach ($days as $day => $week){
+                    $call = ($firstDay == $day ? 'where' : 'orWhere');
+                    $q->{$call}(function ($query2)use($day, $week){
+                        $query2->whereIn('agenda.week', [$week, -1])->where('agenda.day', $day)->where('tasks.week', $week)->where('tasks.day', $day);
+                    });
+                }
+                return $q;
+            })->addSelect('tasks.id');
+        }, null, false);
+        
+        dump($tasks);
+        
         
         $str = "";
         if(isset($tasks[-1])){ // Week идёт от agenda таблицы, котороя содержит расписание, расписаниее не обязательно должно быть кокнретно для этой недели, если есть -1, значит мы получили то которое по умолчанию
@@ -90,7 +106,7 @@ class TasksCommand extends MagicCommand {
             }
             unset($tasks[-1]);
         }
-    
+        
         foreach ($days as $day => $lweek){
             $str .= "_".Week::getDayString($day)."_ ".(($forceShowDate || ($currentWeek != $lweek)) ? '('.Week::humanizeDayAndWeek($lweek, $day).')' : "").PHP_EOL;
             
@@ -104,7 +120,7 @@ class TasksCommand extends MagicCommand {
             }
             $str .= PHP_EOL;
         }
-
+        
         return $str;
     }
 }

@@ -62,7 +62,7 @@ return [
 		'dispatch_mode'      => 2,
 		'reactor_num'        => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 4,
 		'worker_num'         => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 8,
-		//'task_worker_num'    => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 8,
+		'task_worker_num'    => function_exists('swoole_cpu_num') ? swoole_cpu_num() * 2 : 8,
 		'task_ipc_mode'      => 1,
 		'task_max_request'   => 8000,
 		'task_tmpdir'        => @is_writable('/dev/shm/') ? '/dev/shm' : '/tmp',
@@ -82,8 +82,8 @@ return [
 		'http_compression'   => false,
 
 		// Slow log
-		// 'request_slowlog_timeout' => 2,
-		// 'request_slowlog_file'    => storage_path(sprintf('logs/slow-%s.log', date('Y-m'))),
+//		 'request_slowlog_timeout' => 2,
+//		 'request_slowlog_file'    => storage_path(sprintf('logs/slow-%s.log', date('Y-m'))),
 		// 'trace_event_worker'      => true,
 
 		/**

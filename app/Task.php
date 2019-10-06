@@ -3,14 +3,18 @@
 namespace App;
 
 use App\Events\TaskEdited;
+use App\Tasks\AttachmentUploaderTask;
 use App\Telegram\Helpers\TaskCropper;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
+use Longman\TelegramBot\Request;
 
 /**
  * @property int day dayOfWeek
  * @property int num lesson num of day
  * @property int week
+ * @property int id
  * @property string task
  * @property string desc
  * @property int class_id
@@ -22,7 +26,7 @@ class Task extends Model{
     public $incrementing = true;
     protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id', "attachments"];
 
-    public static function add(int $class_id, int $author_id, int $msg_id, int $lesson_num, int $dayOfWeek, int $week, string $task, string $desc = null, array $attachments = []): Task {
+    public static function add(int $class_id, int $author_id, int $msg_id, int $lesson_num, int $dayOfWeek, int $week, string $task, string $desc = null): Task {
         return Task::create([
                 'num' => $lesson_num,
                 'day' => $dayOfWeek,
@@ -31,9 +35,19 @@ class Task extends Model{
                 'author_id' => $author_id,
                 'chat_user_msg_id' => $msg_id,
                 'class_id' => $class_id,
-                'desc' => $desc,
-                'attachments' => '{'.substr(json_encode($attachments), 1, -1).'}'
+                'desc' => $desc
             ]);
+    }
+    
+    public function addAttachments(array $attachments){
+        if(empty($attachments)) return false;
+        
+        foreach ($attachments as $id => $row){
+            $type = array_shift($row);
+            $file_id = array_shift($row);
+            
+            \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id));
+        }
     }
     
     public static function exists(int $class_id, int $week, int $dayOfWeek, int $lesson_num){
