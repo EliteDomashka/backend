@@ -219,7 +219,7 @@ class NewtaskCommand extends MagicCommand {
         $keyboard = [];
         $co = 0;
         $lessons = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
-            return $query->clearOrdersBy()->select(DB::RAW('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title'); // сюда не над добавляить week ЭТО фича
+            return $query->clearOrdersBy()->select(DB::raw('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title'); // сюда не над добавляить week ЭТО фича
         }, -1, true, true);
         $c = count($lessons);
         for ($i = 0; $i < $c; $i++){
