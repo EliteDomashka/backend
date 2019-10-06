@@ -75,13 +75,11 @@ class TasksCommand extends MagicCommand {
         $week = array_values($days)[0];
         $dayOfWeek = array_keys($days)[0];
         
-        dump(array_keys($days));
-        dump(array_values($days));
+
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
             return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
         }, array_values($days), false);
-        dump(array_keys($tasks));
-        
+
         
         $str = "";
         if(isset($tasks[-1])){ // Week идёт от agenda таблицы, котороя содержит расписание, расписаниее не обязательно должно быть кокнретно для этой недели, если есть -1, значит мы получили то которое по умолчанию

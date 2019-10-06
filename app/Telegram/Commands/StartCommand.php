@@ -5,6 +5,7 @@ namespace Longman\TelegramBot\Commands\SystemCommands;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
+use Longman\TelegramBot\Commands\UserCommands\TaskCommand;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
@@ -42,10 +43,7 @@ class StartCommand extends MagicCommand {
             $exp = explode('_', $cmd);
             
             if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
-                $task = Task::getById($task_id);
-                $task['num']++;
-                $data['text'] = __("tgbot.task.lined", $task + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::getDayString($task['day'])]);
-//                dump($data);
+                $data += TaskCommand::genMsgTask($task_id);
             }
         }
 
