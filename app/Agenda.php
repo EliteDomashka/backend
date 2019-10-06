@@ -45,7 +45,7 @@ class Agenda extends Model {
 
         $new = [];
         foreach ($lessons as $lesson){
-            $_week = (isset($lesson['tweek']) ? $lesson['tweek'] : $lesson['week']);
+            $_week = $lesson['week'];
 
             if(!isset($new[$_week])) $new[$_week] = [];
             if(!$raw) {
