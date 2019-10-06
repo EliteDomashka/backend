@@ -3,7 +3,7 @@ namespace App\Telegram\Helpers;
 
 
 class TaskCropper{
-    const MAX = 30;
+    const MAX = 40;
     
     public static function crop(string $otask): array {
         $task = "";

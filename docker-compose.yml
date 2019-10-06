@@ -3,14 +3,14 @@ version: '3'
 services:
   elitedomashka:
     build: .
-    container_name: "elitedomashka"
+#    container_name: "elitedomashka"
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
       - "traefik.basic.port=5000"
       - "traefik.frontend.rule=Host:backend.domashka.cloud"
     ports:
-      - '${LARAVELS_LISTEN_PORT}:80'
+      - '${LARAVELS_LISTEN_PORT}'
     networks:
       - web
       - internal
@@ -36,6 +36,8 @@ services:
       - dbdata:/var/lib/postgresql/data
   adminer:
     image: adminer
+    labels:
+      - "traefik.enable=false"
     networks:
       - internal
       - web
@@ -45,6 +47,8 @@ services:
       - db
   redis:
     image: redis:5-alpine
+    labels:
+      - "traefik.enable=false"
     restart: always
     command: ["redis-server", "--appendonly", "yes"]
     hostname: redis

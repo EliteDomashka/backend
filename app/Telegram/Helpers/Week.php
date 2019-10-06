@@ -5,17 +5,17 @@ namespace App\Telegram\Helpers;
 use Carbon\Carbon;
 
 class Week {
-	public static $days= [
+	public static $days = [
 		1 => "Понеділок",
 		2 => "Вівторок",
 		3 => "Середа",
-		4 => "Четверг",
+		4 => "Четвер",
 		5 => "Пятниця",
 		6 => "Суббота"
 	];
 
 	public static function getDayString($day) :?string {
-		return self::$days[$day];
+		return isset(self::$days[$day]) ? self::$days[$day] : null;
 	}
 
 	/**

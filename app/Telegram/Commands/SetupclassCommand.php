@@ -3,6 +3,7 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 
 use App\ClassM;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\InlineKeyboardCleaner;
 use App\User;
 use Carbon\Carbon;
 use Longman\TelegramBot\Entities\CallbackQuery;
@@ -89,13 +90,25 @@ class SetupclassCommand extends MagicCommand {
                 $callbackQuery->answer($anwser);
             
                 return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
+            }else if ($action[1] == 'hi'){
+		        $edited['text'] = __('tgbot.class.bind_chat_desc');
+		        $edited['reply_markup'] = new InlineKeyboard(
+		            new InlineKeyboardButton([
+		                'text' => __('tgbot.confirm_yes'),
+                        'callback_data' => "setupclass_bindchat"
+                    ]),
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => "settings_hi"
+                    ])
+                );
             }
         }elseif ($action[0] == "notify"){
 		    
 		    if(!isset($action[1])){
 		        $class = $this->getClass();
 		        $edited['text'] = __('tgbot.notify.title');
-		        $edited['reply_markup'] = new InlineKeyboard(
+		        $edited['reply_markup'] = new InlineKeyboardCleaner(
 		            $class->notify_time == null ? new InlineKeyboardButton([
 		                'text' => __('tgbot.notify.turn_on_daily'),
                         'callback_data' => 'setupclass_notify_turnon'
@@ -137,7 +150,7 @@ class SetupclassCommand extends MagicCommand {
 		            if(count($row) > 3) $keyFlag++;
                 }
 		        
-		        $edited['reply_markup'] = (new Keyboard(...$keyboard))->setOneTimeKeyboard(true)->setSelective(true);
+		        $edited['reply_markup'] = (new Keyboard(...$keyboard))->setOneTimeKeyboard(true);
 		        $this->sendMessage($edited);
 		        return  [];
             }elseif ($action[1] == "edit"){
@@ -220,30 +233,33 @@ class SetupclassCommand extends MagicCommand {
             'text' => __('tgbot.notify.get_time_ok', ['time' => $text]),
             'reply_markup' => Keyboard::remove()
         ]);
+        $this->sendMessage([
+            'text' => __('tgbot.notify.finished_time'),
+            'reply_markup' => new InlineKeyboard(
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.notify.edit_daily'),
+                    'callback_data' => 'setupclass_notify_edit'
+                ]),
+                new InlineKeyboardButton([
+                    'text' => __('tgbot.back_toMain_button'),
+                    'callback_data' => 'start'
+                ])
+            )
+        ]);
         
         $conv = $this->getConversation();
-        if(isset($conv->notes['isedit'])){
-            $this->sendMessage([
-                'text' => __('tgbot.notify.finished_time'),
-                'reply_markup' => new InlineKeyboard(
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_button'),
-                        'callback_data' => 'setupclass_notify_edit'
-                    ])
-                )
-            ]);
-            return;
-        }
         $conv->setWaitMsg(false);
         $conv->update();
+        
+        if(isset($conv->notes['isedit'])) return;
         
         $this->sendMessage($this->getChatGetMsg());
 	}
 	protected function getChatGetMsg(): array{
 	    $class = $this->getClass();
         return [
-            'text' => __('tgbot.notify.get_chat'),
-            'reply_markup' => new InlineKeyboard(
+            'text' => __('tgbot.notify.get_chat').(($current = $this->getCurrentNotifyChat()) !== null ? PHP_EOL.__('tgbot.notify.current_chat', ['current' => $current]) : ""),
+            'reply_markup' => new InlineKeyboardCleaner(
                 [
                     new InlineKeyboardButton([
                         'text' => __('tgbot.notify.this_chat_button'),
@@ -255,7 +271,7 @@ class SetupclassCommand extends MagicCommand {
                     ]),
                 ],
                 [
-                    (($class->chat_id != null && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk()) ?
+                    (($class->chat_id != null && $class->chat_id != $this->getMessage()->getFrom()->getId() && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk() && $chat instanceof Chat) ?
                         new InlineKeyboardButton([
                             'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
                             'callback_data' => 'setupclass_notify_complete_usepared'
@@ -270,6 +286,7 @@ class SetupclassCommand extends MagicCommand {
             ),
         ];
     }
+    
 	public static function getInlineKeyboardNotifyComplete(): InlineKeyboard{
 	    return new InlineKeyboard(
 	      new InlineKeyboardButton([
@@ -281,5 +298,24 @@ class SetupclassCommand extends MagicCommand {
               'callback_data' => 'setupclass_bindchat_reset'  //да да, так и задмуивалось
           ])
         );
+    }
+    
+    public function getCurrentNotifyChat(): ?string {
+	    if(($chat_id = $this->getClass()->notify_chat_id) == null) return null;
+	    
+        $chat = Request::getChat(['chat_id' => $chat_id]);
+        if(!$chat->isOk()) return null;
+        $chat = $chat->getResult();
+        
+        if($chat instanceof \Longman\TelegramBot\Entities\User) return __('tgbot.persons.user', ['person' => $chat->getUsername()]);
+        if ($chat instanceof Chat){
+            if($chat->isSuperGroup() && $chat->isGroupChat()){
+                return __('tgbot.persons.group', ['group' => $chat->getTitle()]);
+            }elseif ($chat->isChannel()){
+                return __('tgbot.persons.channel', ['channel' => $chat->getTitle()]);
+            }
+        }
+        dump($chat);
+        return null;
     }
 }

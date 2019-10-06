@@ -35,25 +35,45 @@ class Task extends Model{
                 'attachments' => '{'.substr(json_encode($attachments), 1, -1).'}'
             ]);
     }
+    
+    public static function exists(int $class_id, int $week, int $dayOfWeek, int $lesson_num){
+        return Task::where([
+            ['class_id', $class_id],
+            ['week', $week],
+            ['day', $dayOfWeek],
+            ['num', $lesson_num]
+        ])->exists();
+    }
+    
     public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
         $base = Task::where([
             ['chat_user_msg_id', $chat_user_msg_id],
             ['author_id', $author_id]
         ]);
         if($class_id != null) $base->where('class_id', $class_id);
-        
+
         /** @var $taskM Task  */
         $taskM = $base->first();
-    
+
         $taskM->task = $task;
         $taskM->desc = $desc;
-        
+
         $resp = $taskM->save();
         event(new TaskEdited($taskM));
         return $resp;
     }
-
-    public static function getByWeek(?int $class_id, callable $queryCall, $week, bool $raw = false, $fullDesc = false){
+    
+    /**
+     *  Магичиская функция котороя дополянет Agenda::getScheduleForWeek и выдаёт уже с дз
+     *
+     * @param int|null $class_id индификатор класса, принимат null дабы можно было получать по tasks.id
+     * @param callable $queryCall
+     * @param int|null $week
+     * @param bool $raw
+     * @param bool $fullDesc
+     * @return array|\Illuminate\Support\Collection
+     */
+    public static function getByWeek(?int $class_id, callable $queryCall, ?int $week, bool $raw = false, $fullDesc = false){
         return Agenda::getScheduleForWeek($class_id, function ($query)use($week, $queryCall, $class_id, $fullDesc){
             $base = $query->join('tasks', function ($join)use($week){
                 $join = $join->on([
@@ -61,9 +81,7 @@ class Task extends Model{
                     ['agenda.day', '=', "tasks.day"],
                     ['agenda.class_id', '=', "tasks.class_id"],
                     ]);
-                if(is_array($week)){
-                    $join->whereIn('tasks.week', $week);
-                }else if($week != null){
+                if($week != null){
                     $join->where('tasks.week', $week);
                 }
             })->addSelect('tasks.task')->addSelect('tasks.week as tweek');
@@ -76,10 +94,16 @@ class Task extends Model{
             return $queryCall($base);
         }, $week, $raw);
     }
-    
+
     public static function getById(int $task_id){
-        return @self::getByWeek(null, function ($query)use($task_id){
+        $val = self::getByWeek(null, function ($query)use($task_id){
            return $query->where('tasks.id', $task_id);
-        }, null, true, true)[0];
+        }, null, true, true);
+        if(empty($val)) return null;
+
+        $week = array_shift($val);
+        if(is_array($val = array_shift($week))) return $val;
+
+        return null;
     }
 }

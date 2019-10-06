@@ -25,18 +25,20 @@ class TasksCommand extends MagicCommand {
         if($action[0] == "show") {
             if(isset($action[1]) && is_numeric($action[1])) $action[1] = (bool)(int)$action[1];
             if(isset($action[2]) && is_numeric($action[2])) $action[2] = (int)$action[2];
+            if(isset($action[3]) && is_bool($action[3])) $action[3] = (bool)(int)$action[3];
             $callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
-            return $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek());
+
+            return $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
         }
         return [];
     }
 
-    protected function genMessage(array $base, bool $full, int $week): array {
+    protected function genMessage(array $base, bool $full, int $week, bool $force = false): array {
         $dayOfWeek = null;
-        $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek, false);
+        $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek, $force);
         $base['reply_markup'] = new InlineKeyboard(...[
-            $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => 'tasks_show_0_'.$week]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => 'tasks_show_1_'.$week] ),
-            [new InlineKeyboardButton(['text' => __('tgbot.tasks.prev_week'), 'callback_data' => "tasks_show_{$full}_".($week-1)]), new InlineKeyboardButton(['text' => __('tgbot.tasks.next_week'), 'callback_data' => "tasks_show_{$full}_".($week+1)])],
+            $full ? new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_min_btn'), 'callback_data' => "tasks_show_0_{$week}_{$force}"]) : new InlineKeyboardButton(['text' => __('tgbot.schedule.toggle_full_btn'), 'callback_data' => "tasks_show_1_{$week}_{$force}"] ),
+            [new InlineKeyboardButton(['text' => __('tgbot.tasks.prev_week'), 'callback_data' => "tasks_show_{$full}_".($week-1)."_1"]), new InlineKeyboardButton(['text' => __('tgbot.tasks.next_week'), 'callback_data' => "tasks_show_{$full}_".($week+1)."_1"])],
             $this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton(['text' => __('tgbot.back_toMain_button'), 'callback_data' => 'start']) : null
         ]);
         return $base;
@@ -54,6 +56,8 @@ class TasksCommand extends MagicCommand {
             if($dayOfWeek >= 5){
                 if($dayOfWeek < 7 && $addThisDay) $days[$dayOfWeek] = $week;
                 if($dayOfWeek > 5 && $dayOfWeek+1 < 7) $days[$dayOfWeek+1] = $week;
+                if ($force && empty($days)) $days[6] = $week; // этот фикс который обязан работать!
+                
                 $days[1] = $week+1;
                 if($dayOfWeek > 6) $days[2] = $week+1;
             }elseif ($dayOfWeek < 5){
@@ -71,11 +75,12 @@ class TasksCommand extends MagicCommand {
         $week = array_values($days)[0];
         $dayOfWeek = array_keys($days)[0];
         
-
+        dump(array_keys($days));
+        dump(array_values($days));
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
             return $query->whereIn('tasks.day', $values = array_keys($days))->whereIn('agenda.day', $values)->addSelect('tasks.id');
         }, array_values($days), false);
-
+        dump(array_keys($tasks));
         
         
         $str = "";
