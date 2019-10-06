@@ -50,13 +50,13 @@ class Task extends Model{
             ['author_id', $author_id]
         ]);
         if($class_id != null) $base->where('class_id', $class_id);
-        
+
         /** @var $taskM Task  */
         $taskM = $base->first();
-    
+
         $taskM->task = $task;
         $taskM->desc = $desc;
-        
+
         $resp = $taskM->save();
         event(new TaskEdited($taskM));
         return $resp;
@@ -93,16 +93,16 @@ class Task extends Model{
             return $queryCall($base);
         }, $week, $raw);
     }
-    
+
     public static function getById(int $task_id){
         $val = self::getByWeek(null, function ($query)use($task_id){
            return $query->where('tasks.id', $task_id);
         }, null, true, true);
         if(empty($val)) return null;
-        
+
         $week = array_shift($val);
         if(is_array($val = array_shift($week))) return $val;
-        
+
         return null;
     }
 }
