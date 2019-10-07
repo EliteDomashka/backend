@@ -5,6 +5,7 @@ namespace App\Tasks;
 
 
 use App\Attachment;
+use App\Telegram\Helpers\AttachmentHelper;
 use GuzzleHttp\Client;
 use Hhxsv5\LaravelS\Swoole\Task\Task;
 use Illuminate\Cache\CacheManager;
@@ -32,7 +33,7 @@ class AttachmentUploaderTask extends Task {
             'file_id' => $this->file_id
         ]);
         $this->file_path = $file->getResult()->file_path;
-        $this->file_type = $file_type;
+        $this->file_type = AttachmentHelper::toType($file_type);
     }
     // The logic of task handling, run in task process, CAN NOT deliver task
     public function handle() {

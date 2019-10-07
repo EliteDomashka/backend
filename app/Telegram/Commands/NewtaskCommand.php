@@ -4,6 +4,7 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use App\Agenda;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\AttachmentHelper;
 use App\Telegram\Helpers\TaskCropper;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
@@ -41,7 +42,7 @@ class NewtaskCommand extends MagicCommand {
             $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
             
             $msg = $this->getMessage();
-            $file = $msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio();
+            $file = $msg->getDocument() ?? $msg->getVoice() ?? $msg->getAudio();
 
             $send = [
                 "reply_to_message_id" => $msg->getMessageId(),
@@ -52,6 +53,11 @@ class NewtaskCommand extends MagicCommand {
                     ])
                 )
             ];
+            if($file === null && ($photos = $msg->getPhoto()) != null){
+                dump($photos);
+                
+                $file = array_pop($photos);
+            }
             if($file != null){
                 if (!isset($conv->notes['attachments']) || !is_array($conv->notes['attachments'])) $conv->notes['attachments'] = [];
                 dump($file);
@@ -88,7 +94,9 @@ class NewtaskCommand extends MagicCommand {
             $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
 
             if(!isset($conv->notes['wait_lesson'])) {
-                $conv->notes['task'] = $this->getMessage()->getText();
+                $text = $this->getMessage()->getText();
+                //TODO: сделать проверку на пустоту, и медиа ли это
+                $conv->notes['task'] = $text;
                 $conv->notes['msg_reply_id'] = $conv->notes['task_input_id'] = $this->getMessage()->getMessageId();
                 $this->sendMessage($this->genTaskAcceptedMsg());
             }elseif(isset($conv->notes['wait_lesson'])){
