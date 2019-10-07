@@ -42,7 +42,7 @@ class NewtaskCommand extends MagicCommand {
             
             $msg = $this->getMessage();
             $file = $msg->getDocument() ?? $msg->getPhoto() ?? $msg->getVoice() ?? $msg->getAudio();
-            
+
             $send = [
                 "reply_to_message_id" => $msg->getMessageId(),
                 "reply_markup" => new InlineKeyboard(
@@ -54,10 +54,10 @@ class NewtaskCommand extends MagicCommand {
             ];
             if($file != null){
                 if (!isset($conv->notes['attachments']) || !is_array($conv->notes['attachments'])) $conv->notes['attachments'] = [];
+                dump($file);
     
                 $files = is_array($file) ? $file : [$file];
                 foreach ($files as $file){
-                    dump($file);
                     if($file->getFileId() != null){
                         dump(count($conv->notes['attachments']));
                         if(count($conv->notes['attachments']) < self::ATTACHMENT_LIMIT) {
@@ -68,7 +68,7 @@ class NewtaskCommand extends MagicCommand {
                                     'callback_data' => 'newtask_step3'
                                 ])
                             );
-                            $conv->notes['attachments'][] = [get_class($file), $file->getFileId()];
+                            $conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId()];
                             $conv->update();
                         }else{
                             $send['text'] = __('tgbot.task.attachment_limit', ['attachments' => self::ATTACHMENT_LIMIT]);
@@ -162,9 +162,9 @@ class NewtaskCommand extends MagicCommand {
 	}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'){
+        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'|| $action[0] == 'step3'){
             $notes = $this->getConversation()->notes;
-            if (empty($notes) || !isset($notes['task'])){
+            if (!isset($notes['task']) && empty($notes)){
                 $callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);
                 return [];
             }
@@ -249,7 +249,7 @@ class NewtaskCommand extends MagicCommand {
         }elseif ($action[0] == "save") {
             $conv = $this->getConversation();
 	        $notes = &$conv->notes;
-	        
+	        dump($notes);
 	        $task = Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1]);
 	        
             unset($notes['lesson']);
