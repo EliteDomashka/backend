@@ -14,7 +14,9 @@ class CreateAttachmentsTable extends Migration
     public function up()
     {
         Schema::create('attachments', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->bigInteger('id');
+            $table->bigInteger('task_id');
+            $table->string('type'); //TODO: use int
             $table->timestamps();
         });
     }

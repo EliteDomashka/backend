@@ -46,7 +46,7 @@ class Task extends Model{
             $type = array_shift($row);
             $file_id = array_shift($row);
             
-            \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id));
+            \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id, $type));
         }
     }
     
