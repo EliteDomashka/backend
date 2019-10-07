@@ -46,7 +46,6 @@ class SendDailyTasks extends Command{
         dump('daily');
         dump(date('d.m.Y'));
         $dt = Carbon::now();
-        $dt->hours($dt->hour-3);
         $startdt = (clone $dt)->startOfDay();
         dump($startdt);
         dump($dt);

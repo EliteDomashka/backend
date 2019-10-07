@@ -17,12 +17,9 @@ RUN pecl install inotify \
 	&& docker-php-ext-enable igbinary \
 	&& docker-php-ext-enable redis
 
-RUN apt-get update && \
-        apt-get upgrade -y && \
-        apt-get install -y ntp
-ENV TZ Europe/Kiev
-RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata
-RUN service ntp start
+#ENV TZ Europe/Kiev
+#RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && dpkg-reconfigure -f noninteractive tzdata && date -s "$(wget -qSO- --max-redirect=0 google.com 2>&1 | grep Date: | cut -d' ' -f5-8)Z"
+
 CMD ["/usr/local/bin/php", "bin/laravels", "start"]
 #CMD ["/usr/local/bin/php", "artisan", "daily:sendAll"]
 
