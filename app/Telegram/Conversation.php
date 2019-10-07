@@ -2,7 +2,7 @@
 
 namespace App\Telegram;
 
-use Illuminate\Support\Facades\Redis;
+use Illuminate\Support\Facades\Cache;
 use pocketmine\utils\BinaryDataException;
 use pocketmine\utils\BinaryStream;
 
@@ -36,7 +36,7 @@ class Conversation {
 	 * @aquaminer
 	 */
 	public function load(): void {
-		$buffer = Redis::get($this->getKey());
+		$buffer = Cache::get($this->getKey());
 		if (is_string($buffer)){
 			try {
 				$stream = new BinaryStream($buffer);
@@ -59,15 +59,15 @@ class Conversation {
 		$stream->putBool($this->waitMsg);
 		$stream->put(function_exists('igbinary_serialize') ? igbinary_serialize($this->notes) : serialize($this->notes));
 
-		Redis::pSetEx($this->getKey(), 36000000,  $stream->buffer); //TODO: поставить нормлаьний tts, сам не знаб сколько здесь
+		Cache::put($this->getKey(), $stream->buffer, 60);
 	}
 
 	public function stop(){
-		Redis::del($this->getKey());
+		Cache::put($this->getKey(), "",1);
 	}
 
 	public function exists(){
-		return Redis::exists($this->getKey());
+		return Cache::has($this->getKey());
 	}
 
 	public function isWaitMsg(): bool {
