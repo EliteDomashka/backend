@@ -46,7 +46,7 @@ class AttachmentUploaderTask extends Task {
         if($request->getStatusCode() == 200){
             dump('save');
             try {
-                $resp = Storage::disk('s3')->put($path = "/attachments/{$this->task_id}/{$this->attachment_id}", $request->getBody()->getContents()); // ['visibility' => 'public']);
+                $resp = Storage::cloud()->put($path = "/attachments/{$this->task_id}/{$this->attachment_id}", $request->getBody()->getContents()); // ['visibility' => 'public']);
                 Attachment::create($this->task_id, $this->attachment_id, $this->file_type);
 
             }catch (\Exception $exp){

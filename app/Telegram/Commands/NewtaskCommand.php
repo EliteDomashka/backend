@@ -10,9 +10,11 @@ use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Entities\CallbackQuery;
+use Longman\TelegramBot\Entities\Document;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\PhotoSize;
 use Longman\TelegramBot\Request;
 use phpDocumentor\Reflection\Types\Null_;
 
@@ -74,7 +76,8 @@ class NewtaskCommand extends MagicCommand {
                                     'callback_data' => 'newtask_step3'
                                 ])
                             );
-                            $conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId()];
+                            
+                            $conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId(), $msg->getCaption()]; //TODO: accept gif, pdf, zip only
                             $conv->update();
                         }else{
                             $send['text'] = __('tgbot.task.attachment_limit', ['attachments' => self::ATTACHMENT_LIMIT]);
@@ -170,7 +173,7 @@ class NewtaskCommand extends MagicCommand {
 	}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'|| $action[0] == 'step3'){
+        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'|| $action[0] == 'step3' || $action[0] == "selectLesson"){
             $notes = $this->getConversation()->notes;
             if (!isset($notes['task']) && empty($notes)){
                 $callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);

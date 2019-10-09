@@ -17,6 +17,8 @@ class Attachment extends Model{
     
     protected $fillable = ['task_id', 'id', 'type'];
 
+    
+    const PATH = "attachments/";
     public static function create(int $task_id, int $attachment_id, string $type){
         $attachment = new Attachment();
         $attachment->task_id = $task_id;

@@ -43,7 +43,7 @@ class StartCommand extends MagicCommand {
             $exp = explode('_', $cmd);
             
             if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
-                $data += TaskCommand::genMsgTask($task_id);
+                return $this->getTelegram()->getCommandObject('task')->execute();
             }
         }
 

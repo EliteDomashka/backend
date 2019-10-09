@@ -283,7 +283,7 @@ class SetupCommand extends MagicCommand {
 			$keyboard[$row][] = $lesson_title;
 
 			$c = count($keyboard[$row]);
-			if($c == 4) $row++; // дабы следующим шагом следующию строку
+			if($c == 3) $row++; // дабы следующим шагом следующию строку
 		}
 
 		$row = [];

@@ -2,9 +2,11 @@
 namespace Longman\TelegramBot\Commands\UserCommands;
 
 
+use App\Attachment;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
+use Illuminate\Support\Facades\Storage;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Request;
 
@@ -18,17 +20,16 @@ class TaskCommand extends MagicCommand {
         if ($exp[0] == 'task' && (isset($exp[1]) && is_numeric($task_id = $exp[1]))){
             $this->sendMessage(self::genMsgTask($task_id));
             
-            $task = Task::getById($task_id);
-            $attachments = json_decode($task['attachment_json'], true);
-            dump($attachments);
-            dump(Request::getFile([
-                'file_id' => $attachments[0]
-            ]));
-            $resp = Request::sendVideo([
-                "video" => $attachments[0],
-                "chat_id" => $this->getMessage()->getChat()->getId()
-            ]);
-//            dump($resp);
+            foreach (Attachment::where('task_id', $task_id)->select('type', 'id', 'caption')->get() as $attachment){
+                $method = 'send'.($type = $attachment->type);
+                dump($attachment);
+                Request::$method([
+                    'chat_id' => $this->getMessage()->getChat()->getId(),
+                    mb_strtolower($type) => $url = Storage::cloud()->temporaryUrl(Attachment::PATH."{$task_id}/{$attachment->id}", now()->addMinutes(5)),
+                    'caption' => $attachment->caption
+                ]);
+                dump($url);
+            }
         }
     }
     
