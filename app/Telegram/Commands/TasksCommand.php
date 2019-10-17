@@ -113,14 +113,7 @@ class TasksCommand extends MagicCommand {
             
             if(isset($tasks[$lweek][$day])){
                 foreach ($tasks[$lweek][$day] as $task) {
-//                    /** @var Task $task */
-//                    if($task instanceof Task) dump($task->attachments()->empty()); else dump($task);
-//                    ++$task['num'];
-                    dump($task['id']);
-                    dump(Attachment::where('task_id', $task['id'])->get()->toArray()
-                    );
                     $attachment_have = Attachment::where('task_id', $task['id'])->exists();
-                    dump($attachment_have);
                     $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']}".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](".($url = "https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']}").")". ($attachment_have ? "[📎]({$url})" : "")). PHP_EOL;
                 }
             }else{
