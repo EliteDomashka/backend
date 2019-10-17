@@ -14,7 +14,8 @@ class CreateAgendaTable extends Migration
     public function up()
     {
         Schema::create('agenda', function (Blueprint $table) {
-        	$table->bigInteger('class_id');
+            $table->bigIncrements('row_id');
+            $table->bigInteger('class_id');
                 $table->integer('day');
                 $table->integer('num');
                 $table->bigInteger('lesson_id');

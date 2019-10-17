@@ -11,29 +11,31 @@ services:
       - "traefik.frontend.rule=Host:backend.domashka.cloud"
     ports:
       - '${LARAVELS_LISTEN_PORT}'
+    volumes:
+      - /home/alexey/projects/newdomashka/backend:/var/www
     networks:
       - web
       - internal
 #      - default
     depends_on:
-      - db
+#      - db
       - redis
-
-  db:
-    image: "postgres"
-    container_name: "postgres"
-    labels:
-      - "traefik.enable=false"
-    ports:
-      - "${DB_PORT}:5432"
-    environment:
-      - POSTGRES_USER=${DB_USERNAME}
-      - POSTGRES_PASSWORD=${DB_PASSWORD}
-      - POSTGRES_DB=${DB_DATABASE}
-    networks:
-      - internal
-    volumes:
-      - dbdata:/var/lib/postgresql/data
+#
+#  db:
+#    image: "postgres"
+#    container_name: "postgres"
+#    labels:
+#      - "traefik.enable=false"
+#    ports:
+#      - "${DB_PORT}:5432"
+#    environment:
+#      - POSTGRES_USER=${DB_USERNAME}
+#      - POSTGRES_PASSWORD=${DB_PASSWORD}
+#      - POSTGRES_DB=${DB_DATABASE}
+#    networks:
+#      - internal
+#    volumes:
+#      - dbdata:/var/lib/postgresql/data
   adminer:
     image: adminer
     labels:
@@ -43,8 +45,8 @@ services:
       - web
     ports:
       - 8081:8080
-    depends_on:
-      - db
+#    depends_on:
+#      - db
   redis:
     image: redis:5-alpine
     labels:

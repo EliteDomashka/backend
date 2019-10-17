@@ -12,4 +12,4 @@ yarn-error.log
 phpstorm.meta.php
 
 .idea/
-storage/logs/
+storage/logs/*
