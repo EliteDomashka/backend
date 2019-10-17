@@ -1,6 +1,7 @@
 <?php
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use App\Attachment;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
@@ -112,8 +113,15 @@ class TasksCommand extends MagicCommand {
             
             if(isset($tasks[$lweek][$day])){
                 foreach ($tasks[$lweek][$day] as $task) {
-                    ++$task['num'];
-                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']} ".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']})"). PHP_EOL;
+//                    /** @var Task $task */
+//                    if($task instanceof Task) dump($task->attachments()->empty()); else dump($task);
+//                    ++$task['num'];
+                    dump($task['id']);
+                    dump(Attachment::where('task_id', $task['id'])->get()->toArray()
+                    );
+                    $attachment_have = Attachment::where('task_id', $task['id'])->exists();
+                    dump($attachment_have);
+                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']}".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](".($url = "https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']}").")". ($attachment_have ? "[📎]({$url})" : "")). PHP_EOL;
                 }
             }else{
                 $str .= __('tgbot.schedule.empty').PHP_EOL;

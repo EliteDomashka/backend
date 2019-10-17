@@ -120,4 +120,7 @@ class Task extends Model{
 
         return null;
     }
+    public function attachments(){
+        $this->hasMany('attachments', 'task_id', 'id');
+    }
 }

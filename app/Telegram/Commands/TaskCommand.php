@@ -22,13 +22,11 @@ class TaskCommand extends MagicCommand {
             
             foreach (Attachment::where('task_id', $task_id)->select('type', 'id', 'caption')->get() as $attachment){
                 $method = 'send'.($type = $attachment->type);
-                dump($attachment);
                 Request::$method([
                     'chat_id' => $this->getMessage()->getChat()->getId(),
                     mb_strtolower($type) => $url = Storage::cloud()->temporaryUrl(Attachment::PATH."{$task_id}/{$attachment->id}", now()->addMinutes(5)),
                     'caption' => $attachment->caption
                 ]);
-                dump($url);
             }
         }
     }
@@ -42,6 +40,7 @@ class TaskCommand extends MagicCommand {
         $task = Task::getById($task_id);
         $task['num']++;
         
+        if($task == null) return  $resp + ['text' => "no data"];
         $resp['text'] = __("tgbot.task.lined", $task + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::getDayString($task['day'])]);
         return $resp;
     }
