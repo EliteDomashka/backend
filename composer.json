@@ -19,7 +19,8 @@
         "nesbot/carbon": "^2.21",
         "php-http/curl-client": "^2.0",
         "php-telegram-bot/laravel": "^0.0.1",
-        "pocketmine/binaryutils": "^0.1.9"
+        "pocketmine/binaryutils": "^0.1.9",
+        "sentry/sentry-laravel": "1.4.0"
     },
     "repositories": [
         {
