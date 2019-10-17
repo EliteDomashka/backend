@@ -20,11 +20,12 @@ class TaskCommand extends MagicCommand {
         if ($exp[0] == 'task' && (isset($exp[1]) && is_numeric($task_id = $exp[1]))){
             $this->sendMessage(self::genMsgTask($task_id));
             
-            foreach (Attachment::where('task_id', $task_id)->select('type', 'id', 'caption')->get() as $attachment){
+            foreach (Attachment::where('task_id', $task_id)->select('type', 'id', 'file_id','caption')->get() as $attachment){
                 $method = 'send'.($type = $attachment->type);
                 Request::$method([
                     'chat_id' => $this->getMessage()->getChat()->getId(),
-                    mb_strtolower($type) => $url = Storage::cloud()->temporaryUrl(Attachment::PATH."{$task_id}/{$attachment->id}", now()->addMinutes(5)),
+                    mb_strtolower($type) => $attachment->file_id,
+//                    mb_strtolower($type) => $url = Storage::cloud()->temporaryUrl(Attachment::PATH."{$task_id}/{$attachment->id}", now()->addMinutes(5)),
                     'caption' => $attachment->caption
                 ]);
             }

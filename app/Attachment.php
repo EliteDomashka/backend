@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
  * @property int task_id
  * @property int id
  * @property string type
+ * @property string file_id
+ * @property string caption
  */
 
 class Attachment extends Model{
@@ -19,11 +21,13 @@ class Attachment extends Model{
 
     
     const PATH = "attachments/";
-    public static function create(int $task_id, int $attachment_id, string $type){
+    public static function create(int $task_id, int $attachment_id, string $type, string $file_id, ?string $caption){
         $attachment = new Attachment();
         $attachment->task_id = $task_id;
         $attachment->id = $attachment_id;
         $attachment->type = $type;
+        $attachment->file_id = $file_id;
+        $attachment->caption = $caption;
         
         $attachment->save();
     }
