@@ -6,18 +6,22 @@ use App\Telegram\Helpers\Week;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Class Agenda
  * @property int week
  */
 class Agenda extends Model {
+    
     protected $table = 'agenda';
     protected $fillable = ['class_id', 'day', 'num', 'lesson_id', 'week'];
     public $timestamps = false;
 
-    public static function getSchedule(?int $class_id, bool $asTitle = true){
-    	$base =  Agenda::select('agenda.day', 'agenda.num' )->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
+    public static function getSchedule(?int $class_id, bool $asTitle = true, bool $humanizeNum = false){
+     
+    	$base = Agenda::select('agenda.day', $humanizeNum ? DB::raw('(agenda.num+1) as num') : 'agenda.num')
+            ->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
     	if($class_id != null) $base->where('agenda.class_id', $class_id);
     	if($asTitle){
             return $base->leftJoin('lessons_id', 'agenda.lesson_id', '=', 'lessons_id.id')->addSelect('lessons_id.title as title');
@@ -25,24 +29,26 @@ class Agenda extends Model {
     	    return $base->addSelect('agenda.lesson_id');
         }
     }
-
+    
     /**
      * @param int $class_id
      * @param callable $query
      * @param null|array|int $week
      * @param bool $raw
      * @param bool $asTitle
+     * @param bool $humanizeNum
+     *
      * @return array|Collection
      */
-    public static function getScheduleForWeek(?int $class_id, callable $query, ?int $week = -1, $raw = false, bool $asTitle = true) {
+    public static function getScheduleForWeek(?int $class_id, callable $query, ?int $week = -1, $raw = false, bool $asTitle = true, bool $humanizeNum = false) {
         if($week === -1) $week = Week::getCurrentWeek();
         if(is_array($week)){
             $week[] = -1;
         }
-        $lessons = $query(Agenda::getSchedule($class_id, $asTitle))->addSelect('agenda.week');
+        $lessons = $query(Agenda::getSchedule($class_id, $asTitle, $humanizeNum))->addSelect('agenda.week');
         if($week != null) $lessons = $lessons->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week);
         $lessons = $lessons->get();
-
+        
         $new = [];
         foreach ($lessons as $lesson){
             $_week = $lesson['week'];
@@ -73,12 +79,12 @@ class Agenda extends Model {
             return $query->where([
                 ['day', '=', $day],
                 ['num', '=', $num]
-            ]);
+            ])->limit(1);
         }, $currentWeek, true, false)[0]['lesson_id'];
         // --- end get lesson_id by day and num ----
 
         $lessons = Agenda::getScheduleForWeek($class_id, function ($query)use($lesson_id){
-            return $query->where('lesson_id', $lesson_id);
+            return $query->where('lesson_id', $lesson_id)->addSelect('agenda.num');
         }, $currentWeek, true, false);
 
         $dt = Carbon::now(new \DateTimeZone('Europe/Kiev'));
@@ -95,7 +101,7 @@ class Agenda extends Model {
 
         if(empty($result)){// поиск на следующей неделе
             $lessons = Agenda::getScheduleForWeek($class_id, function ($query)use($lesson_id){
-                return $query->where('lesson_id', $lesson_id);
+                return $query->where('lesson_id', $lesson_id)->addSelect('agenda.num');
             }, $currentWeek+1, true);
             foreach ($lessons as $lesson){
                 if(empty($result) && ($lesson['day'] < $dt->dayOfWeekIso)){

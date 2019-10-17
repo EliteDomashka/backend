@@ -85,7 +85,7 @@ class ScheduleCommand extends MagicCommand{
                     }
                     return $q;
                 });
-        }, null);
+        }, null, false, true, true);
 
 		$str = "";
 		foreach ($getdays as $day => $week){
@@ -93,7 +93,7 @@ class ScheduleCommand extends MagicCommand{
 			if(!isset($schedule[$week])) $week = -1;
 			if(isset($schedule[$week][$day])){
 				foreach ($schedule[$week][$day] as $row){
-					$str .= ($row['num']+1).". *{$row['title']}*".PHP_EOL;
+					$str .= ($row['num']).". *{$row['title']}*".PHP_EOL;
 				}
 			}else{
 				$str .= __('tgbot.schedule.empty').PHP_EOL;

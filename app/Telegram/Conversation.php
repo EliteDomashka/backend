@@ -59,7 +59,7 @@ class Conversation {
 		$stream->putBool($this->waitMsg);
 		$stream->put(function_exists('igbinary_serialize') ? igbinary_serialize($this->notes) : serialize($this->notes));
 
-		Cache::put($this->getKey(), $stream->buffer, 60);
+		Cache::put($this->getKey(), $stream->buffer, 60*60*24); //сутки
 	}
 
 	public function stop(){
