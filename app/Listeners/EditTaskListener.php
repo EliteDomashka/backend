@@ -6,6 +6,7 @@ use App\DailyTask;
 use App\Events\TaskEdited;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Log;
 use Longman\TelegramBot\Commands\UserCommands\TasksCommand;
 use Longman\TelegramBot\Request;
 
@@ -26,6 +27,7 @@ class EditTaskListener{
      * @return void
      */
     public function handle(TaskEdited $event) {
+        Log::info('EditTaskListener::handle');
         $task = $event->task;
         
         $week = $task->week;

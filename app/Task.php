@@ -2,6 +2,7 @@
 
 namespace App;
 
+use App\Events\TaskCreated;
 use App\Events\TaskEdited;
 use App\Telegram\Helpers\TaskCropper;
 use Illuminate\Database\Eloquent\Model;
@@ -23,7 +24,7 @@ class Task extends Model{
     protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id'];
 
     public static function add(int $class_id, int $author_id, int $msg_id, int $lesson_num, int $dayOfWeek, int $week, string $task, string $desc = null): Task {
-            return Task::create([
+        $task = Task::create([
                 'num' => $lesson_num,
                 'day' => $dayOfWeek,
                 'week' => $week,
@@ -33,6 +34,10 @@ class Task extends Model{
                 'class_id' => $class_id,
                 'desc' => $desc,
             ]);
+        
+        event(new TaskCreated($task));
+        
+        return $task;
     }
     
     public static function exists(int $class_id, int $week, int $dayOfWeek, int $lesson_num){
