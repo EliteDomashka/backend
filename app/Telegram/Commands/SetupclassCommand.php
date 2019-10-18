@@ -107,7 +107,7 @@ class SetupclassCommand extends MagicCommand {
 		    
 		    if(!isset($action[1])){
 		        $class = $this->getClass();
-		        $edited['text'] = __('tgbot.notify.title');
+		        $edited['text'] = __('tgbot.notify.setting_desc');
 		        $edited['reply_markup'] = new InlineKeyboardCleaner(
 		            $class->notify_time == null ? new InlineKeyboardButton([
 		                'text' => __('tgbot.notify.turn_on_daily'),
