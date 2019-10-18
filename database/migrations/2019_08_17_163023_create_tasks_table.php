@@ -21,9 +21,10 @@ class CreateTasksTable extends Migration
             $table->integer('day'); //dayOfWeek
             $table->string('task');
             $table->text('desc');
-            //TODO: attachment
+    
             $table->timestamps();
         });
+        \Illuminate\Support\Facades\DB::statement('ALTER TABLE tasks ADD attachments text[]');
     }
 
     /**

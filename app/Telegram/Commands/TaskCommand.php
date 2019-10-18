@@ -39,6 +39,7 @@ class TaskCommand extends MagicCommand {
     public static function genMsgTask(int $task_id):array {
         $resp = [];
         $task = Task::getById($task_id);
+        $task['num']++;
         
         if($task == null) return  $resp + ['text' => "no data"];
         $resp['text'] = __("tgbot.task.lined", $task + ['date' => Week::humanizeDayAndWeek($task['tweek'], $task['day']), 'weekday' => Week::getDayString($task['day'])]);

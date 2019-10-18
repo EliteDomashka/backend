@@ -4,20 +4,25 @@ namespace Longman\TelegramBot\Commands\UserCommands;
 use App\Agenda;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\AttachmentHelper;
 use App\Telegram\Helpers\TaskCropper;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Entities\CallbackQuery;
+use Longman\TelegramBot\Entities\Document;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
 use Longman\TelegramBot\Entities\Keyboard;
+use Longman\TelegramBot\Entities\PhotoSize;
 use Longman\TelegramBot\Request;
+use phpDocumentor\Reflection\Types\Null_;
 
 class NewtaskCommand extends MagicCommand {
 	protected $name = 'newtask';
 	protected $private_only = false;
-
+ 
+	const ATTACHMENT_LIMIT = 5;
 
 	public function execute() {
 		$conv = $this->getConversation();
@@ -25,6 +30,7 @@ class NewtaskCommand extends MagicCommand {
 		$conv->setCommand($this);
 		$conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
         if(isset($conv->notes['wait_lesson'])) unset($conv->notes['wait_lesson']);
+        if(isset($conv->notes['waitAttachment'])) unset($conv->notes['waitAttachment']);
         
         $this->sendMessage([
 			'text' => __('tgbot.task.letsgo'),
@@ -34,12 +40,66 @@ class NewtaskCommand extends MagicCommand {
 	}
 	public function onMessage(): void {
 		$conv = $this->getConversation();
-		if($conv->isWaitMsg() && ($this->getMessage()->getChat()->isPrivateChat() || !$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
+		if(isset($conv->notes['waitAttachment']) && $conv->notes['waitAttachment'] == true){
+            $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
+            
+            $msg = $this->getMessage();
+            $file = $msg->getDocument() ?? $msg->getVoice() ?? $msg->getAudio();
+
+            $send = [
+                "reply_to_message_id" => $msg->getMessageId(),
+                "reply_markup" => new InlineKeyboard(
+                    new InlineKeyboardButton([
+                        'text' => __('tgbot.back_button'),
+                        'callback_data' => 'newtask_step3'
+                    ])
+                )
+            ];
+            if($file === null && ($photos = $msg->getPhoto()) != null){
+                dump($photos);
+                
+                $file = array_pop($photos);
+            }
+            if($file != null){
+                if (!isset($conv->notes['attachments']) || !is_array($conv->notes['attachments'])) $conv->notes['attachments'] = [];
+                dump($file);
+    
+                $files = is_array($file) ? $file : [$file];
+                foreach ($files as $file){
+                    if($file->getFileId() != null){
+                        dump(count($conv->notes['attachments']));
+                        if(count($conv->notes['attachments']) < self::ATTACHMENT_LIMIT) {
+                            $send['text'] = __('tgbot.task.attachment_accepted');
+                            $send['reply_markup'] = new InlineKeyboard(
+                                new InlineKeyboardButton([
+                                    'text' => __('tgbot.task.attachment_accepted_button'),
+                                    'callback_data' => 'newtask_step3'
+                                ])
+                            );
+                            
+                            $conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId(), $msg->getCaption() ?? ""]; //TODO: accept gif, pdf, zip only
+                            $conv->update();
+                        }else{
+                            $send['text'] = __('tgbot.task.attachment_limit', ['attachments' => self::ATTACHMENT_LIMIT]);
+                        }
+                    }else{
+                        $send['text'] = __('tgbot.task.wrong_attachment');
+                    }
+                }
+            }else{
+                $send['text'] = __('tgbot.task.need_attachment');
+            }
+            
+            $this->sendMessage($send);
+        }else if($this->getMessage()->getChat()->isPrivateChat() || (!$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
+		    dump('ok');
             $conv->setWaitMsg(false);
             $conv->notes['msg_reply_id'] = $this->getMessage()->getMessageId();
 
             if(!isset($conv->notes['wait_lesson'])) {
-                $conv->notes['task'] = $this->getMessage()->getText();
+                $text = $this->getMessage()->getText();
+                //TODO: сделать проверку на пустоту, и медиа ли это
+                $conv->notes['task'] = $text;
                 $conv->notes['msg_reply_id'] = $conv->notes['task_input_id'] = $this->getMessage()->getMessageId();
                 $this->sendMessage($this->genTaskAcceptedMsg());
             }elseif(isset($conv->notes['wait_lesson'])){
@@ -49,7 +109,6 @@ class NewtaskCommand extends MagicCommand {
                 }, null, true, true);
 
                 $send = [
-                    'chat_id' => $this->getMessage()->getChat()->getId(),
                     'reply_to_message_id' => $conv->notes['msg_reply_id']
                 ];
                 if (!empty($result)){
@@ -114,13 +173,14 @@ class NewtaskCommand extends MagicCommand {
 	}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
-        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'){
+        if($action[0] == 'select' || $action[0] == 'save' || $action[0] == 'step2'|| $action[0] == 'step3' || $action[0] == "selectLesson"){
             $notes = $this->getConversation()->notes;
-            if (empty($notes)){
+            if (!isset($notes['task']) && empty($notes)){
                 $callbackQuery->answer(['text' => __('tgbot.setup.session_fail')]);
                 return [];
             }
         }
+
 	    if($action[0] == 'chose'){
 	        switch ($action[1]){
                 case 'auto':
@@ -168,8 +228,7 @@ class NewtaskCommand extends MagicCommand {
             $lesson = $conv->notes['lesson'] = Agenda::findNextLesson($this->getClassId(), $action[1], $action[2]);
             $conv->update();
 	        dump($lesson);
-	        $edited['text'] = __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $lesson['date'], 'day' => Week::getDayString($lesson['day'])]);
-	        $edited['reply_markup'] = $this->getFinishInlineKeyboard();
+            $edited = $edited + $this->genMsgAskConfirm();
         }elseif ($action[0] == "selectDay") {
             $conv = $this->getConversation();
 
@@ -177,24 +236,47 @@ class NewtaskCommand extends MagicCommand {
                 'day' => $day = $action[1],
                 'num' => $num = $action[2],
                 'week' => $week = $action[3],
-                'timestamp' => ($dt = Week::getDtByWeekAndDay($week, $day))->getTimestamp()
+                'timestamp' => ($dt = Week::getDtByWeekAndDay($week, $day))->getTimestamp(),
+                'date' => $dt->format('d.m.Y')
             ];
-            $edited['text'] = __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $dt->format('d.m.Y'), 'day' => Week::getDayString($day)]);
-            $edited['reply_markup'] = $this->getFinishInlineKeyboard();
             $conv->update();
+            
+            $edited = $edited + $this->genMsgAskConfirm();
 
+        }elseif ($action[0] == "attachment"){
+	        $conv = $this->getConversation();
+        
+            $conv->notes['waitAttachment'] = true;
+	        $conv->setWaitMsg(true);
+	        $conv->setCommand($this);
+	        $conv->update();
+	        
+	        Request::deleteMessage($edited);
+	        
+	        $edited['text'] = __('tgbot.task.wait_attachment');
+	        $edited['reply_markup'] = Keyboard::forceReply();
+	        Request::sendMessage($edited);
+	        return [];
         }elseif ($action[0] == "save") {
             $conv = $this->getConversation();
 	        $notes = &$conv->notes;
-	        
-	        Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1]); //TODO: делить task на task и desc
+	        dump($notes);
+	        $task = Task::add($this->getClassId(), $this->getFrom()->getId(), $notes['task_input_id'], $notes['lesson']['num'], $notes['lesson']['day'], Week::getWeekByTimestamp($notes['lesson']['timestamp']), ($cropped = TaskCropper::crop($notes['task']))[0], $cropped[1]);
 	        
             unset($notes['lesson']);
 	        unset($notes['task']);
 	        unset($notes['task_input_id']);
 	        unset($notes['msg_reply_id']);
+            if(isset($notes['waitAttachment'])) unset($notes['waitAttachment']);
 	        $conv->update();
 	        
+            if(isset($notes['attachments'])){
+                $task->addAttachments($notes['attachments']);
+                
+                unset($notes['attachments']);
+                $conv->update();
+            }
+            
             $edited['text'] = __('tgbot.task.saved');
 	        $edited['reply_markup'] = new InlineKeyboard(
 	            new InlineKeyboardButton([
@@ -208,6 +290,8 @@ class NewtaskCommand extends MagicCommand {
             );
         }elseif ($action[0] == "step2"){
 	        return $edited + $this->genTaskAcceptedMsg();
+        }elseif ($action[0] == 'step3'){
+	        return $edited + $this->genMsgAskConfirm();
         }elseif ($action[0] == "hi"){
             Request::deleteMessage($edited);
             $this->execute();
@@ -245,10 +329,21 @@ class NewtaskCommand extends MagicCommand {
                 'callback_data' => 'newtask_save'
             ]),
             new InlineKeyboardButton([
+               'text' => __('tgbot.task.add_attachment'),
+               'callback_data' => "newtask_attachment"
+            ]),
+            new InlineKeyboardButton([
                 'text' => __('tgbot.back_button'),
                 'callback_data' => 'newtask_step2'
             ])
         );
+    }
+    private function genMsgAskConfirm(){
+	    $conv = $this->getConversation();
+	    return [
+	        'text' =>  __('tgbot.task.confirm', ['task' => $conv->notes['task'], 'date' => $conv->notes['lesson']['date'], 'day' => Week::getDayString($conv->notes['lesson']['day'])]),
+            'reply_markup' => $this->getFinishInlineKeyboard()
+        ];
     }
 	private function genTaskAcceptedMsg(){
 	    $keyboard = [

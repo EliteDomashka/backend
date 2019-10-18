@@ -1,6 +1,7 @@
 <?php
 namespace Longman\TelegramBot\Commands\UserCommands;
 
+use App\Attachment;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
 use App\Telegram\Helpers\Week;
@@ -16,9 +17,9 @@ class TasksCommand extends MagicCommand {
     protected $name = 'tasks';
     protected $private_only = false;
     public $needclass = true;
-
+    
     public function execute(){
-       $this->sendMessage($this->genMessage([], false, Week::getCurrentWeek()));
+        $this->sendMessage($this->genMessage([], false, Week::getCurrentWeek()));
     }
     
     public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array{
@@ -27,12 +28,12 @@ class TasksCommand extends MagicCommand {
             if(isset($action[2]) && is_numeric($action[2])) $action[2] = (int)$action[2];
             if(isset($action[3]) && is_bool($action[3])) $action[3] = (bool)(int)$action[3];
             $callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
-
+            
             return $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
         }
         return [];
     }
-
+    
     protected function genMessage(array $base, bool $full, int $week, bool $force = false): array {
         $dayOfWeek = null;
         $base['text'] = self::getTasks($this->getClassId(), $full, $week, $dayOfWeek, $force);
@@ -52,7 +53,7 @@ class TasksCommand extends MagicCommand {
         dump($week);
         if($week === null) $week = $currentWeek;
         if($dayOfWeek === null) $dayOfWeek = Week::getCurrentDayOfWeek();
-    
+        
         $days = [];
         if(!$full){
             if($week != $currentWeek && $week != $currentWeek+1) $dayOfWeek = 1;
@@ -74,13 +75,13 @@ class TasksCommand extends MagicCommand {
                 $days[$day] = $week;
             }
         }
-    
+        
         $week = array_values($days)[0];
         $dayOfWeek = array_keys($days)[0];
         
         dump(array_keys($days));
         dump(array_values($days));
-
+        
         $tasks = Task::getByWeek($class_id, function ($query)use($days){
             return $query->where(function ($q)use($days){
                 $firstDay = array_keys($days)[0];
@@ -93,7 +94,7 @@ class TasksCommand extends MagicCommand {
                 return $q;
             })->addSelect('tasks.id');
         }, null, false);
-
+        
         dump($tasks);
         
         
@@ -106,21 +107,21 @@ class TasksCommand extends MagicCommand {
             }
             unset($tasks[-1]);
         }
-    
+        
         foreach ($days as $day => $lweek){
             $str .= "_".Week::getDayString($day)."_ ".(($forceShowDate || ($currentWeek != $lweek)) ? '('.Week::humanizeDayAndWeek($lweek, $day).')' : "").PHP_EOL;
             
             if(isset($tasks[$lweek][$day])){
                 foreach ($tasks[$lweek][$day] as $task) {
-                    ++$task['num'];
-                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']} ".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']})"). PHP_EOL;
+                    $attachment_have = Attachment::where('task_id', $task['id'])->exists();
+                    $str .= "{$task['num']}. *{$task['title']}*: _{$task['task']}".($task['desc'] != 1 ? $task['desc']."_"  : "_[...](".($url = "https://t.me/".env('PHP_TELEGRAM_BOT_NAME')."?start=task_{$task['id']}").")". ($attachment_have ? "[📎]({$url})" : "")). PHP_EOL;
                 }
             }else{
                 $str .= __('tgbot.schedule.empty').PHP_EOL;
             }
             $str .= PHP_EOL;
         }
-
+        
         return $str;
     }
 }
