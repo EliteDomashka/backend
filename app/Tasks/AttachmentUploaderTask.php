@@ -56,11 +56,9 @@ class AttachmentUploaderTask extends Task {
 			}
 		}
 
-		Log::info(__CLASS__ . ':handle start', [$this->task_id]);
-
 	}
 	// Optional, finish event, the logic of after task handling, run in worker process, CAN deliver task
 	public function finish() {
-		Log::info(__CLASS__ . ':finish start', [$this->result ?? 'null']);
+
 	}
 }
