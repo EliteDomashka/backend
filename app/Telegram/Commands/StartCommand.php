@@ -21,31 +21,31 @@ class StartCommand extends MagicCommand {
 	public function execute() {
 		$message = $this->getMessage();
 		$data = [];
-        if(($cmd = $message->getText(true)) == ""){
-            if($this->getClassId() === null){
-                $data = $data + [
-                    'text'    => __('tgbot.start.hello'),
-                    'reply_markup' => new InlineKeyboard(
-                        new InlineKeyboardButton([
-                            'text' => __('tgbot.start.hello_button'),
-                            'callback_data' => 'start'
-                        ]),
-                        new InlineKeyboardButton([
-                            'text' => __('tgbot.settings.language_button'),
-                            'callback_data' => 'settings_language_start'
-                        ])
-                    )
-                ];
-            }else{
-                $data = $this->genForPro($data);
-            }
+		if(($cmd = $message->getText(true)) == ""){
+			if($this->getClassId() === null){
+				$data = $data + [
+					'text'    => __('tgbot.start.hello'),
+					'reply_markup' => new InlineKeyboard(
+						new InlineKeyboardButton([
+							'text' => __('tgbot.start.hello_button'),
+							'callback_data' => 'start'
+						]),
+						new InlineKeyboardButton([
+							'text' => __('tgbot.settings.language_button'),
+							'callback_data' => 'settings_language_start'
+						])
+					)
+				];
+			}else{
+				$data = $this->genForPro($data);
+			}
 		}else{
-            $exp = explode('_', $cmd);
-            
-            if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
-                return $this->getTelegram()->getCommandObject('task')->execute();
-            }
-        }
+			$exp = explode('_', $cmd);
+
+			if ($exp[0] == 'task' && isset($exp[1]) && is_numeric($task_id = $exp[1])){
+				return $this->getTelegram()->getCommandObject('task')->execute();
+			}
+		}
 
 		return $this->sendMessage($data);
 	}
@@ -70,10 +70,10 @@ class StartCommand extends MagicCommand {
 				'text' => __('tgbot.schedule.title'),
 				'callback_data' => 'schedule_hi'
 			]),
-            new InlineKeyboardButton([
-                'text' => __('tgbot.tasks.title'),
-                'callback_data' => "tasks_show"
-            ]),
+			new InlineKeyboardButton([
+				'text' => __('tgbot.tasks.title'),
+				'callback_data' => "tasks_show"
+			]),
 			new InlineKeyboardButton([
 				'text' => __('tgbot.task.new'),
 				'callback_data' => "newtask_hi"

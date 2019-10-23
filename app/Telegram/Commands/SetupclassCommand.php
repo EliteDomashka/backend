@@ -72,250 +72,250 @@ class SetupclassCommand extends MagicCommand {
 				}
 			}
 		}elseif ($action[0] == "bindchat"){
-		    $conv = $this->getConversation();
-		    if (!isset($action[1])){
-		        $conv->notes['waitAddToChat'] = $this->getClass()->id;
-		        $conv->update();
-		        $edited['text'] = __('tgbot.class.bind_chat_instruction');
-		        $edited['reply_markup'] = new InlineKeyboard(
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_toMain_button'),
-                        'callback_data' => 'setupclass_bindchat_reset'
-                    ])
-                );
-            }else if ($action[1] == 'reset'){
-                if(isset($conv->notes['waitAddToChat'])) unset($conv->notes['waitAddToChat']);
-                if(isset($conv->notes['notifyWaitAddToChat'])) unset($conv->notes['notifyWaitAddToChat']);
-		        $conv->update();
-                $callbackQuery->answer($anwser);
-            
-                return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
-            }else if ($action[1] == 'hi'){
-		        $edited['text'] = __('tgbot.class.bind_chat_desc');
-		        $edited['reply_markup'] = new InlineKeyboard(
-		            new InlineKeyboardButton([
-		                'text' => __('tgbot.confirm_yes'),
-                        'callback_data' => "setupclass_bindchat"
-                    ]),
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_button'),
-                        'callback_data' => "settings_hi"
-                    ])
-                );
-            }
-        }elseif ($action[0] == "notify"){
-		    
-		    if(!isset($action[1])){
-		        $class = $this->getClass();
-		        $edited['text'] = __('tgbot.notify.setting_desc');
-		        $edited['reply_markup'] = new InlineKeyboardCleaner(
-		            $class->notify_time == null ? new InlineKeyboardButton([
-		                'text' => __('tgbot.notify.turn_on_daily'),
-                        'callback_data' => 'setupclass_notify_turnon'
-                    ]) : new InlineKeyboardButton([
-                        'text' => __('tgbot.notify.edit_daily'),
-                        'callback_data' => 'setupclass_notify_edit'
-                    ]),
-                    $class->notify_time != null ? new InlineKeyboardButton([
-                        'text' => __('tgbot.notify.turn_off_daily'),
-                        'callback_data' => 'setupclass_notify_turnoff'
-                    ]) : null,
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_button'),
-                        'callback_data' => 'settings_hi'
-                    ])
-                );
-            }elseif ($action[1] == "turnon"){
-                Request::deleteMessage($edited);
-                $conv = $this->getConversation();
-                $conv->setCommand($this);
-                $conv->setWaitMsg(true);
-                $conv->notes['isedit'] = true;
-                $conv->update();
-            
-                $edited['text'] = __('tgbot.notify.get_time');
-		        
-		        dump(date_default_timezone_get());
-		        $dt = Carbon::now();
-		        
-		        $keyboard = [];
-		        $keyFlag = 0;
-		        for ($hour = 9; $hour <= 22; $hour++){
-		            $row = isset($keyboard[$keyFlag]) ? $keyboard[$keyFlag] : [];
-		            foreach ([0, 30] as $minute){
-		                $dt->setTime($hour, $minute);
-		                $row[] = $dt->format('H:i');
-                    }
-                    $keyboard[$keyFlag] = $row;
-		            if(count($row) > 3) $keyFlag++;
-                }
-		        
-		        $edited['reply_markup'] = (new Keyboard(...$keyboard))->setOneTimeKeyboard(true);
-		        $this->sendMessage($edited);
-		        return  [];
-            }elseif ($action[1] == "edit"){
-		        $edited['text'] = __('tgbot.notify.edit_daily');
-		        $edited['reply_markup'] = new InlineKeyboard(
-		            new InlineKeyboardButton([
-		                'text' => __('tgbot.notify.upd_time'),
-                        'callback_data' => "setupclass_notify_turnon_edit"
-                    ]),
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.notify.upd_chat'),
-                        'callback_data' => 'setupclass_notify_chatupd'
-                    ]),
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_button'),
-                        'callback_data' => 'setupclass_notify'
-                    ])
-                
-                );
-            }elseif($action[1] == "chatupd"){
-		        return $edited + $this->getChatGetMsg();
-            }elseif ($action[1] == "selectchat"){
-		        $edited['text'] = __('tgbot.class.bind_chat_instruction');
-		        
-                $conv = $this->getConversation();
-                $conv->notes['notifyWaitAddToChat'] = $this->getClass()->id;
-                $conv->update();
-                
-                $edited['reply_markup'] = new InlineKeyboard(
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_toMain_button'),
-                        'callback_data' => 'setupclass_bindchat_reset'  //да да, так и задмуивалось
-                    ])
-                );
-            }elseif ($action[1] == "complete"){
-		        $class = $this->getClass();
-		        
-		        if($class->notify_time !== null){
-		            if(isset($action[2]) && $action[2] == "usepared"){
-		                $class->notify_chat_id = $class->chat_id;
-                    }else{
-                        $class->notify_chat_id = null;
-                    }
-		            
-                    $class->update();
-            
-                    $edited['text'] = __('tgbot.notify.finished');
-                    $edited['reply_markup'] = new InlineKeyboard(
-                        new InlineKeyboardButton([
-                            'text' => __('tgbot.back_toMain_button'),
-                            'callback_data' => 'start'
-                        ])
-                    );
-                }else return [];
-            }elseif ($action[1] == "turnoff"){
-		        $class = $this->getClass();
-		        $class->notify_time = null;
-		        $class->save();
-            
-                $edited = $this->onCallback($callbackQuery, ['notify'], $edited);
-                
-                $anwser['text'] = 'turn off';
-                $anwser['show_alert'] = true;
-            }
-        }
+			$conv = $this->getConversation();
+			if (!isset($action[1])){
+				$conv->notes['waitAddToChat'] = $this->getClass()->id;
+				$conv->update();
+				$edited['text'] = __('tgbot.class.bind_chat_instruction');
+				$edited['reply_markup'] = new InlineKeyboard(
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_toMain_button'),
+						'callback_data' => 'setupclass_bindchat_reset'
+					])
+				);
+			}else if ($action[1] == 'reset'){
+				if(isset($conv->notes['waitAddToChat'])) unset($conv->notes['waitAddToChat']);
+				if(isset($conv->notes['notifyWaitAddToChat'])) unset($conv->notes['notifyWaitAddToChat']);
+				$conv->update();
+				$callbackQuery->answer($anwser);
+
+				return $this->getTelegram()->getCommandObject('start')->onCallback($callbackQuery, [], $edited);
+			}else if ($action[1] == 'hi'){
+				$edited['text'] = __('tgbot.class.bind_chat_desc');
+				$edited['reply_markup'] = new InlineKeyboard(
+					new InlineKeyboardButton([
+						'text' => __('tgbot.confirm_yes'),
+						'callback_data' => "setupclass_bindchat"
+					]),
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_button'),
+						'callback_data' => "settings_hi"
+					])
+				);
+			}
+		}elseif ($action[0] == "notify"){
+
+			if(!isset($action[1])){
+				$class = $this->getClass();
+				$edited['text'] = __('tgbot.notify.setting_desc');
+				$edited['reply_markup'] = new InlineKeyboardCleaner(
+					$class->notify_time == null ? new InlineKeyboardButton([
+						'text' => __('tgbot.notify.turn_on_daily'),
+						'callback_data' => 'setupclass_notify_turnon'
+					]) : new InlineKeyboardButton([
+						'text' => __('tgbot.notify.edit_daily'),
+						'callback_data' => 'setupclass_notify_edit'
+					]),
+					$class->notify_time != null ? new InlineKeyboardButton([
+						'text' => __('tgbot.notify.turn_off_daily'),
+						'callback_data' => 'setupclass_notify_turnoff'
+					]) : null,
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_button'),
+						'callback_data' => 'settings_hi'
+					])
+				);
+			}elseif ($action[1] == "turnon"){
+				Request::deleteMessage($edited);
+				$conv = $this->getConversation();
+				$conv->setCommand($this);
+				$conv->setWaitMsg(true);
+				$conv->notes['isedit'] = true;
+				$conv->update();
+
+				$edited['text'] = __('tgbot.notify.get_time');
+
+				dump(date_default_timezone_get());
+				$dt = Carbon::now();
+
+				$keyboard = [];
+				$keyFlag = 0;
+				for ($hour = 9; $hour <= 22; $hour++){
+					$row = isset($keyboard[$keyFlag]) ? $keyboard[$keyFlag] : [];
+					foreach ([0, 30] as $minute){
+						$dt->setTime($hour, $minute);
+						$row[] = $dt->format('H:i');
+					}
+					$keyboard[$keyFlag] = $row;
+					if(count($row) > 3) $keyFlag++;
+				}
+
+				$edited['reply_markup'] = (new Keyboard(...$keyboard))->setOneTimeKeyboard(true);
+				$this->sendMessage($edited);
+				return  [];
+			}elseif ($action[1] == "edit"){
+				$edited['text'] = __('tgbot.notify.edit_daily');
+				$edited['reply_markup'] = new InlineKeyboard(
+					new InlineKeyboardButton([
+						'text' => __('tgbot.notify.upd_time'),
+						'callback_data' => "setupclass_notify_turnon_edit"
+					]),
+					new InlineKeyboardButton([
+						'text' => __('tgbot.notify.upd_chat'),
+						'callback_data' => 'setupclass_notify_chatupd'
+					]),
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_button'),
+						'callback_data' => 'setupclass_notify'
+					])
+
+				);
+			}elseif($action[1] == "chatupd"){
+				return $edited + $this->getChatGetMsg();
+			}elseif ($action[1] == "selectchat"){
+				$edited['text'] = __('tgbot.class.bind_chat_instruction');
+
+				$conv = $this->getConversation();
+				$conv->notes['notifyWaitAddToChat'] = $this->getClass()->id;
+				$conv->update();
+
+				$edited['reply_markup'] = new InlineKeyboard(
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_toMain_button'),
+						'callback_data' => 'setupclass_bindchat_reset'  //да да, так и задмуивалось
+					])
+				);
+			}elseif ($action[1] == "complete"){
+				$class = $this->getClass();
+
+				if($class->notify_time !== null){
+					if(isset($action[2]) && $action[2] == "usepared"){
+						$class->notify_chat_id = $class->chat_id;
+					}else{
+						$class->notify_chat_id = null;
+					}
+
+					$class->update();
+
+					$edited['text'] = __('tgbot.notify.finished');
+					$edited['reply_markup'] = new InlineKeyboard(
+						new InlineKeyboardButton([
+							'text' => __('tgbot.back_toMain_button'),
+							'callback_data' => 'start'
+						])
+					);
+				}else return [];
+			}elseif ($action[1] == "turnoff"){
+				$class = $this->getClass();
+				$class->notify_time = null;
+				$class->save();
+
+				$edited = $this->onCallback($callbackQuery, ['notify'], $edited);
+
+				$anwser['text'] = 'turn off';
+				$anwser['show_alert'] = true;
+			}
+		}
 
 		$callbackQuery->answer($anwser);
 
 		return $edited;
 	}
 	public function onMessage(): void {
-	    $dt = Carbon::createFromFormat('H:i', $text = $this->getMessage()->getText());
-        dump($dt);
-        
-        $class = $this->getClass();
-        $class->notify_time = $dt->diffInSeconds(Carbon::now()->startOfDay());
-        $class->save();
-        
-        $this->sendMessage([
-            'text' => __('tgbot.notify.get_time_ok', ['time' => $text]),
-            'reply_markup' => Keyboard::remove()
-        ]);
-        $this->sendMessage([
-            'text' => __('tgbot.notify.finished_time'),
-            'reply_markup' => new InlineKeyboard(
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.notify.edit_daily'),
-                    'callback_data' => 'setupclass_notify_edit'
-                ]),
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.back_toMain_button'),
-                    'callback_data' => 'start'
-                ])
-            )
-        ]);
-        
-        $conv = $this->getConversation();
-        $conv->setWaitMsg(false);
-        $conv->update();
-        
-        if(isset($conv->notes['isedit'])) return;
-        
-        $this->sendMessage($this->getChatGetMsg());
+		$dt = Carbon::createFromFormat('H:i', $text = $this->getMessage()->getText());
+		dump($dt);
+
+		$class = $this->getClass();
+		$class->notify_time = $dt->diffInSeconds(Carbon::now()->startOfDay());
+		$class->save();
+
+		$this->sendMessage([
+			'text' => __('tgbot.notify.get_time_ok', ['time' => $text]),
+			'reply_markup' => Keyboard::remove()
+		]);
+		$this->sendMessage([
+			'text' => __('tgbot.notify.finished_time'),
+			'reply_markup' => new InlineKeyboard(
+				new InlineKeyboardButton([
+					'text' => __('tgbot.notify.edit_daily'),
+					'callback_data' => 'setupclass_notify_edit'
+				]),
+				new InlineKeyboardButton([
+					'text' => __('tgbot.back_toMain_button'),
+					'callback_data' => 'start'
+				])
+			)
+		]);
+
+		$conv = $this->getConversation();
+		$conv->setWaitMsg(false);
+		$conv->update();
+
+		if(isset($conv->notes['isedit'])) return;
+
+		$this->sendMessage($this->getChatGetMsg());
 	}
 	protected function getChatGetMsg(): array{
-	    $class = $this->getClass();
-        return [
-            'text' => __('tgbot.notify.get_chat').(($current = $this->getCurrentNotifyChat()) !== null ? PHP_EOL.__('tgbot.notify.current_chat', ['current' => $current]) : ""),
-            'reply_markup' => new InlineKeyboardCleaner(
-                [
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.notify.this_chat_button'),
-                        'callback_data' => 'setupclass_notify_complete'
-                    ]),
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.notify.another_chat_button'),
-                        'callback_data' => 'setupclass_notify_selectchat'
-                    ]),
-                ],
-                [
-                    (($class->chat_id != null && $class->chat_id != $this->getMessage()->getFrom()->getId() && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk() && $chat instanceof Chat) ?
-                        new InlineKeyboardButton([
-                            'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
-                            'callback_data' => 'setupclass_notify_complete_usepared'
-                        ]) : null)
-                ],
-                [
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_button'),
-                        'callback_data' => 'setupclass_notify_edit'
-                    ])
-                ]
-            ),
-        ];
-    }
-    
+		$class = $this->getClass();
+		return [
+			'text' => __('tgbot.notify.get_chat').(($current = $this->getCurrentNotifyChat()) !== null ? PHP_EOL.__('tgbot.notify.current_chat', ['current' => $current]) : ""),
+			'reply_markup' => new InlineKeyboardCleaner(
+				[
+					new InlineKeyboardButton([
+						'text' => __('tgbot.notify.this_chat_button'),
+						'callback_data' => 'setupclass_notify_complete'
+					]),
+					new InlineKeyboardButton([
+						'text' => __('tgbot.notify.another_chat_button'),
+						'callback_data' => 'setupclass_notify_selectchat'
+					]),
+				],
+				[
+					(($class->chat_id != null && $class->chat_id != $this->getMessage()->getFrom()->getId() && ($chat = Request::getChat(['chat_id' => $class->chat_id]))->isOk() && $chat instanceof Chat) ?
+						new InlineKeyboardButton([
+							'text' => __('tgbot.notify.pared_chat_button', ['chat' => $chat->getResult()->title]),
+							'callback_data' => 'setupclass_notify_complete_usepared'
+						]) : null)
+				],
+				[
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_button'),
+						'callback_data' => 'setupclass_notify_edit'
+					])
+				]
+			),
+		];
+	}
+
 	public static function getInlineKeyboardNotifyComplete(): InlineKeyboard{
-	    return new InlineKeyboard(
-	      new InlineKeyboardButton([
-            'text' => __('tgbot.confirm_yes'),
-             'callback_data' => "setupclass_notify_complete"
-          ]),
-          new InlineKeyboardButton([
-              'text' => __('tgbot.back_toMain_button'),
-              'callback_data' => 'setupclass_bindchat_reset'  //да да, так и задмуивалось
-          ])
-        );
-    }
-    
-    public function getCurrentNotifyChat(): ?string {
-	    if(($chat_id = $this->getClass()->notify_chat_id) == null) return null;
-	    
-        $chat = Request::getChat(['chat_id' => $chat_id]);
-        if(!$chat->isOk()) return null;
-        $chat = $chat->getResult();
-        
-        if($chat instanceof \Longman\TelegramBot\Entities\User) return __('tgbot.persons.user', ['person' => $chat->getUsername()]);
-        if ($chat instanceof Chat){
-            if($chat->isSuperGroup() && $chat->isGroupChat()){
-                return __('tgbot.persons.group', ['group' => $chat->getTitle()]);
-            }elseif ($chat->isChannel()){
-                return __('tgbot.persons.channel', ['channel' => $chat->getTitle()]);
-            }
-        }
-        dump($chat);
-        return null;
-    }
+		return new InlineKeyboard(
+		  new InlineKeyboardButton([
+			'text' => __('tgbot.confirm_yes'),
+			 'callback_data' => "setupclass_notify_complete"
+		  ]),
+		  new InlineKeyboardButton([
+			  'text' => __('tgbot.back_toMain_button'),
+			  'callback_data' => 'setupclass_bindchat_reset'  //да да, так и задмуивалось
+		  ])
+		);
+	}
+
+	public function getCurrentNotifyChat(): ?string {
+		if(($chat_id = $this->getClass()->notify_chat_id) == null) return null;
+
+		$chat = Request::getChat(['chat_id' => $chat_id]);
+		if(!$chat->isOk()) return null;
+		$chat = $chat->getResult();
+
+		if($chat instanceof \Longman\TelegramBot\Entities\User) return __('tgbot.persons.user', ['person' => $chat->getUsername()]);
+		if ($chat instanceof Chat){
+			if($chat->isSuperGroup() && $chat->isGroupChat()){
+				return __('tgbot.persons.group', ['group' => $chat->getTitle()]);
+			}elseif ($chat->isChannel()){
+				return __('tgbot.persons.channel', ['channel' => $chat->getTitle()]);
+			}
+		}
+		dump($chat);
+		return null;
+	}
 }

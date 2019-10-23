@@ -49,42 +49,42 @@ abstract class MagicCommand extends UserCommand{
 		}
 		return self::$user;
 	}
-    /** @var ?ClassM */
-    static $class = null;
-    public function getClass(): ?ClassM{
-        if(self::$class == null){
-            $id = $this->getMessage()->getChat()->getId();
-            self::$class = ClassM::where('chat_id', $id)->orWhere('user_owner',$this->getFrom()->getId())->first();
-        }
-        return self::$class;
-    }
-    public function sendMessage(array $data): ServerResponse{
-        return Request::sendMessage($data + [
-            'chat_id' => $this->getMessage()->getChat()->getId(),
-            'parse_mode' => 'markdown'
-        ]);
-    }
+	/** @var ?ClassM */
+	static $class = null;
+	public function getClass(): ?ClassM{
+		if(self::$class == null){
+			$id = $this->getMessage()->getChat()->getId();
+			self::$class = ClassM::where('chat_id', $id)->orWhere('user_owner',$this->getFrom()->getId())->first();
+		}
+		return self::$class;
+	}
+	public function sendMessage(array $data): ServerResponse{
+		return Request::sendMessage($data + [
+			'chat_id' => $this->getMessage()->getChat()->getId(),
+			'parse_mode' => 'markdown'
+		]);
+	}
 	public function getClassId(): ?int{
-        return isset($this->getClass()->id) ? $this->getClass()->id : null;
-    }
+		return isset($this->getClass()->id) ? $this->getClass()->id : null;
+	}
 	public function preExecute() {
 		dump(json_encode($this->getUser()));
 		App::setLocale($this->getUser()->lang);
-		
+
 		if($this->needclass){
-            if($this->getClassId() == null){
-                return $this->sendMessage(['text' => __('tgbot.error.fail_get_chat'), 'reply_to_message_id' => $this->getMessage()->getMessageId()]);
-            }
-        }
+			if($this->getClassId() == null){
+				return $this->sendMessage(['text' => __('tgbot.error.fail_get_chat'), 'reply_to_message_id' => $this->getMessage()->getMessageId()]);
+			}
+		}
 		if($this->private_only && !($msg = $this->getMessage())->getChat()->isPrivateChat()){
-		    Request::sendMessage([
-		        'reply_to_message_id' => $msg->getMessageId(),
-		        'text'=> __('tgbot.only_private'),
-                'parse_mode' => 'markdown',
-                'disable_notification' => true
-            ]);
-		    return;
-        }
+			Request::sendMessage([
+				'reply_to_message_id' => $msg->getMessageId(),
+				'text'=> __('tgbot.only_private'),
+				'parse_mode' => 'markdown',
+				'disable_notification' => true
+			]);
+			return;
+		}
 		return parent::preExecute();
 	}
 

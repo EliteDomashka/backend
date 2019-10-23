@@ -13,7 +13,7 @@ use Longman\TelegramBot\Request;
 
 class ScheduleCommand extends MagicCommand{
 	protected $name = 'schedule';
-    public $needclass = true;
+	public $needclass = true;
 
 	public function execute() {
 		Request::sendMessage([
@@ -25,11 +25,11 @@ class ScheduleCommand extends MagicCommand{
 					'text' => __('tgbot.schedule.toggle_full_btn'),
 					'callback_data' => 'schedule_full'
 				]),
-                $this->getMessage()->getChat()->isPrivateChat() ?
-                    new InlineKeyboardButton([
-                        'text' => __('tgbot.back_toMain_button'),
-                        'callback_data' => 'start'
-                    ]) : null
+				$this->getMessage()->getChat()->isPrivateChat() ?
+					new InlineKeyboardButton([
+						'text' => __('tgbot.back_toMain_button'),
+						'callback_data' => 'start'
+					]) : null
 			)
 		]);
 	}
@@ -74,18 +74,18 @@ class ScheduleCommand extends MagicCommand{
 				$getdays[$day] = $week;
 			}
 		}
-        $schedule = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($getdays){
-		    return $query->where(function ($q)use($getdays){
-                    $firstDay = array_keys($getdays)[0];
-                    foreach ($getdays as $day => $week){
-                        $call = ($firstDay == $day ? 'where' : 'orWhere');
-                        $q->{$call}(function ($query2)use($day, $week){
-                            $query2->whereIn('agenda.week', [$week, -1])->where('agenda.day', $day);
-                        });
-                    }
-                    return $q;
-                });
-        }, null, false, true, true);
+		$schedule = Agenda::getScheduleForWeek($this->getClassId(), function ($query)use($getdays){
+			return $query->where(function ($q)use($getdays){
+					$firstDay = array_keys($getdays)[0];
+					foreach ($getdays as $day => $week){
+						$call = ($firstDay == $day ? 'where' : 'orWhere');
+						$q->{$call}(function ($query2)use($day, $week){
+							$query2->whereIn('agenda.week', [$week, -1])->where('agenda.day', $day);
+						});
+					}
+					return $q;
+				});
+		}, null, false, true, true);
 
 		$str = "";
 		foreach ($getdays as $day => $week){

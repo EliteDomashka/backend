@@ -32,10 +32,10 @@ class CallbackqueryCommand extends MagicCommand {
 		if(($cmd = $this->getTelegram()->getCommandObject(array_shift($callback_data))) instanceof MagicCommand){
 			/** @var $cmd MagicCommand */
 			if($cmd->needclass && $this->getClassId() == null){
-			    dump('stop onCallback, class_id = null');
-			    $callback_query->answer(['text' => 'access denied']);
-			    return;
-            }
+				dump('stop onCallback, class_id = null');
+				$callback_query->answer(['text' => 'access denied']);
+				return;
+			}
 			$cmd->conversation = $this->getConversation();
 			$senddata = $cmd->onCallback($callback_query, $callback_data, $senddata);
 			dump('MagicCommand end');

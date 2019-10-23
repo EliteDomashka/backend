@@ -11,8 +11,8 @@ services:
       - "traefik.frontend.rule=Host:backend.domashka.cloud"
     ports:
       - '${LARAVELS_LISTEN_PORT}'
-    volumes:
-      - /home/alexey/projects/newdomashka/backend:/var/www
+#    volumes:
+#      - /home/alexey/projects/newdomashka/backend:/var/www
     networks:
       - web
       - internal

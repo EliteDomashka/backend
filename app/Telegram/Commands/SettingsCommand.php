@@ -15,36 +15,36 @@ use Longman\TelegramBot\Entities\InlineKeyboardButton;
 class SettingsCommand extends MagicCommand {
 	public $name = 'settings';
 	public $private_only = true;
-	
+
 	public function execute() {}
 
 	public function onCallback(CallbackQuery $callbackQuery, array $action, array $edited): array {
 		$edited['text'] = 'not implement, '.json_encode($action);
 		if($action[0] == 'hi'){
-		    $keyboard = [
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.settings.edit_button'),
-                    'callback_data' => 'settings_edit_schedule'
-                ]),
-                new InlineKeyboardButton([
-                    'text' => __('tgbot.settings.language_button'),
-                    'callback_data' => 'settings_language_start'
-                ])];
-		    if($this->getClass()->user_owner == $this->getUser()->id && ($this->getClass()->chat_id == null)){
-		        $keyboard[] = new InlineKeyboardButton([
-                    'text' => __('tgbot.settings.connect_chat_title'),
-                    'callback_data' => 'setupclass_bindchat_hi'
-                ]);
-            }
-		    $keyboard[] = new InlineKeyboardButton([
-		       'text' => __('tgbot.notify.title'),
-               'callback_data' => 'setupclass_notify'
-            ]);
-		    $keyboard[] = new InlineKeyboardButton([
-                'text' => __('tgbot.back_toMain_button'),
-                'callback_data' => 'start'
-            ]);
-		    
+			$keyboard = [
+				new InlineKeyboardButton([
+					'text' => __('tgbot.settings.edit_button'),
+					'callback_data' => 'settings_edit_schedule'
+				]),
+				new InlineKeyboardButton([
+					'text' => __('tgbot.settings.language_button'),
+					'callback_data' => 'settings_language_start'
+				])];
+			if($this->getClass()->user_owner == $this->getUser()->id && ($this->getClass()->chat_id == null)){
+				$keyboard[] = new InlineKeyboardButton([
+					'text' => __('tgbot.settings.connect_chat_title'),
+					'callback_data' => 'setupclass_bindchat_hi'
+				]);
+			}
+			$keyboard[] = new InlineKeyboardButton([
+			   'text' => __('tgbot.notify.title'),
+			   'callback_data' => 'setupclass_notify'
+			]);
+			$keyboard[] = new InlineKeyboardButton([
+				'text' => __('tgbot.back_toMain_button'),
+				'callback_data' => 'start'
+			]);
+
 			$edited['text'] = __('tgbot.settings.title');
 			$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 		}elseif ($action[0] == 'edit'){
@@ -70,11 +70,11 @@ class SettingsCommand extends MagicCommand {
 							'text' => __('tgbot.settings.schedule_get_next', ['week_str' => Week::humanize($week+1)]),
 							'callback_data' => 'settings_edit_schedule_next'
 						]),
-                        new InlineKeyboardButton([
-                                'text' => __('tgbot.back_button'),
-                                'callback_data' => 'settings_hi'
-                        ])
-                        
+						new InlineKeyboardButton([
+								'text' => __('tgbot.back_button'),
+								'callback_data' => 'settings_hi'
+						])
+
 					);
 				}else{
 					$week = Carbon::now()->weekOfYear;
@@ -133,8 +133,8 @@ class SettingsCommand extends MagicCommand {
 
 				$edited['reply_markup'] = new InlineKeyboard(...$keyboard);
 			}else if($action[1] == 'set'){
-                $edited['text'] = __('tgbot.settings.title');
-                if(in_array($lang = $action[2], array_keys(config('app.locales')))){
+				$edited['text'] = __('tgbot.settings.title');
+				if(in_array($lang = $action[2], array_keys(config('app.locales')))){
 					App::setLocale($lang);
 					$user = $this->getUser();
 					$user->lang = $lang;
