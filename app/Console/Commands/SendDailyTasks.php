@@ -56,7 +56,7 @@ class SendDailyTasks extends Command{
         $chats = ClassM::select('classes.id as class_id', 'notify_chat_id', 'user_owner', 'chat_id') //chat_id для фикса
             ->where([
                 ['notify_time', '<=', $diff+90],
-                ['notify_time', '>=', $diff-60]
+//                ['notify_time', '>=', $diff-10]
             ])
             ->get();
         
