@@ -38,6 +38,7 @@ class NewtaskCommand extends MagicCommand {
 		] + ($this->getMessage()->getChat()->isPrivateChat() ? [] : ['reply_to_message_id' => $this->getMessage()->getMessageId()]));
 		$conv->update();
 	}
+
 	public function onMessage(): void {
 		$conv = $this->getConversation();
 		if(isset($conv->notes['waitAttachment']) && $conv->notes['waitAttachment'] == true){
@@ -280,6 +281,10 @@ class NewtaskCommand extends MagicCommand {
 			$edited['text'] = __('tgbot.task.saved');
 			$edited['reply_markup'] = new InlineKeyboard(
 				new InlineKeyboardButton([
+					'text' => __('tgbot.task.edit_btn'),
+					'callback_data' => "task_edit_".$task->id
+				]),
+				new InlineKeyboardButton([
 					'text' => __('tgbot.goto.tasks'),
 					'callback_data' => 'tasks_show'
 				]),
@@ -299,6 +304,7 @@ class NewtaskCommand extends MagicCommand {
 		}
 		return $edited;
 	}
+
 	private function genLessonsKeyboard(): Keyboard{
 		$keyboard = [];
 		$co = 0;
@@ -322,6 +328,7 @@ class NewtaskCommand extends MagicCommand {
 
 		return (new Keyboard(...$keyboard))->setSelective(true)->setOneTimeKeyboard(true);
 	}
+
 	private function getFinishInlineKeyboard(): InlineKeyboard{
 		return new InlineKeyboard(
 			new InlineKeyboardButton([
@@ -338,6 +345,7 @@ class NewtaskCommand extends MagicCommand {
 			])
 		);
 	}
+
 	private function genMsgAskConfirm(){
 		$conv = $this->getConversation();
 		return [
@@ -345,6 +353,7 @@ class NewtaskCommand extends MagicCommand {
 			'reply_markup' => $this->getFinishInlineKeyboard()
 		];
 	}
+
 	private function genTaskAcceptedMsg(){
 		$keyboard = [
 			new InlineKeyboardButton([

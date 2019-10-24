@@ -15,7 +15,7 @@ return [
 		'enable'        => env('LARAVELS_INOTIFY_RELOAD', true),
 		'watch_path'    => base_path(),
 		'file_types'    => ['.php', '.json'],
-		'excluded_dirs' => [],
+		'excluded_dirs' => ['storage'],
 		'log'           => true,
 	],
 	'event_handlers'           => [],

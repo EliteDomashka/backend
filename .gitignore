@@ -13,3 +13,5 @@ phpstorm.meta.php
 
 .idea/
 storage/logs/*
+
+.env.stable

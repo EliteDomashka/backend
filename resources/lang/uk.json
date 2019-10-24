@@ -94,7 +94,14 @@
         "need_attachment": "Упс, надішли мені медія файл або документ",
         "attachment_accepted": "Вложення прияняте, продовжуємо? якщо потрібно йще - надсилай",
         "attachment_accepted_button": "✅ Продовжити",
-        "attachment_limit": "Ліміт в :attachments вложеннь перевщений"
+        "attachment_limit": "Ліміт в :attachments вложеннь перевщений",
+		"edit_btn": "\uD83D\uDCDD Редагувати Д/З",
+		"edit_header": "Редагування",
+		"edit_task_btn": "✏️ Редагувати запис",
+		"edit_desc": "Ось міні інструкція про те як можна редагувати",
+		"edit_desc_action": "Напишіть оновдене д/з",
+		"edit_attachments": "\uD83D\uDD87 Редагувати вложення",
+		"delete_task": "\uD83D\uDDD1 Видалити"
     },
     "confirm_yes": "ТАК",
     "tasks": {

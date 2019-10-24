@@ -7,20 +7,20 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=web"
-      - "traefik.basic.port=5000"
-      - "traefik.frontend.rule=Host:backend.domashka.cloud"
+      - "traefik.basic.port=${LARAVELS_LISTEN_PORT}"
+      - "traefik.frontend.rule=Host:${APP_DOMAIN}"
     ports:
       - '${LARAVELS_LISTEN_PORT}'
-#    volumes:
-#      - /home/alexey/projects/newdomashka/backend:/var/www
+    volumes:
+      - /home/alexey/projects/newdomashka/backend:/var/www
     networks:
       - web
       - internal
 #      - default
-    depends_on:
-#      - db
-      - redis
-#
+#    depends_on:
+##      - db
+#      - redis
+
 #  db:
 #    image: "postgres"
 #    container_name: "postgres"
@@ -52,10 +52,10 @@ services:
     labels:
       - "traefik.enable=false"
     restart: always
-    command: ["redis-server", "--appendonly", "yes"]
+    command: ["redis-server", "--appendonly", "yes", "--port", "${REDIS_PORT}"]
     hostname: redis
     ports:
-      - 6379:6379
+      - ${REDIS_PORT}:${REDIS_PORT}
     networks:
       - internal
     volumes:
