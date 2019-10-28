@@ -61,6 +61,11 @@ class StartCommand extends MagicCommand {
 		}else{
 			$edited = $edited + $this->genForPro($edited);
 		}
+		if(isset($action[0]) && $action[0] == "newmsg"){
+			$this->sendMessage($edited);
+			return [];
+		}
+
 		return $edited;
 	}
 	public function genForPro(array $data): array {

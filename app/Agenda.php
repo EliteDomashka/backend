@@ -10,16 +10,20 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Class Agenda
+ * @property int row_id
+ * @property int num
+ * @property int day
+ * @property int lesson_id
  * @property int week
  */
 class Agenda extends Model {
-    
+
     protected $table = 'agenda';
     protected $fillable = ['class_id', 'day', 'num', 'lesson_id', 'week'];
     public $timestamps = false;
 
     public static function getSchedule(?int $class_id, bool $asTitle = true, bool $humanizeNum = false){
-     
+
     	$base = Agenda::select('agenda.day', $humanizeNum ? DB::raw('(agenda.num+1) as num') : 'agenda.num')
             ->orderBy('agenda.day', 'asc')->orderBy('agenda.num', 'asc');
     	if($class_id != null) $base->where('agenda.class_id', $class_id);
@@ -29,7 +33,7 @@ class Agenda extends Model {
     	    return $base->addSelect('agenda.lesson_id');
         }
     }
-    
+
     /**
      * @param int $class_id
      * @param callable $query
@@ -48,7 +52,7 @@ class Agenda extends Model {
         $lessons = $query(Agenda::getSchedule($class_id, $asTitle, $humanizeNum))->addSelect('agenda.week');
         if($week != null) $lessons = $lessons->whereIn('agenda.week', is_numeric($week) ? [$week, -1] : $week);
         $lessons = $lessons->get();
-        
+
         $new = [];
         foreach ($lessons as $lesson){
             $_week = $lesson['week'];

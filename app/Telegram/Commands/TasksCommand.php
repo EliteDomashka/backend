@@ -29,7 +29,12 @@ class TasksCommand extends MagicCommand {
             if(isset($action[3]) && is_bool($action[3])) $action[3] = (bool)(int)$action[3];
             $callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
 
-            return $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
+            $msg = $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
+        	if($action[1] == "newmsg"){
+        		$this->sendMessage($msg);
+			}else{
+        		return $msg;
+			}
         }
         return [];
     }

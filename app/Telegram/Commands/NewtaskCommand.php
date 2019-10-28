@@ -47,15 +47,7 @@ class NewtaskCommand extends MagicCommand {
 			$msg = $this->getMessage();
 			$file = $msg->getDocument() ?? $msg->getVoice() ?? $msg->getAudio();
 
-			$send = [
-				"reply_to_message_id" => $msg->getMessageId(),
-				"reply_markup" => new InlineKeyboard(
-					new InlineKeyboardButton([
-						'text' => __('tgbot.back_button'),
-						'callback_data' => 'newtask_step3'
-					])
-				)
-			];
+			$send = [];
 			if($file === null && ($photos = $msg->getPhoto()) != null){
 				dump($photos);
 
@@ -91,7 +83,15 @@ class NewtaskCommand extends MagicCommand {
 				$send['text'] = __('tgbot.task.need_attachment');
 			}
 
-			$this->sendMessage($send);
+			$this->sendMessage([
+					"reply_to_message_id" => $msg->getMessageId(),
+					"reply_markup" => new InlineKeyboard(
+						new InlineKeyboardButton([
+							'text' => __('tgbot.back_button'),
+							'callback_data' => 'newtask_step3'
+						])
+					)
+				] + $send);
 		}else if($this->getMessage()->getChat()->isPrivateChat() || (!$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
 			dump('ok');
 			$conv->setWaitMsg(false);
@@ -115,31 +115,10 @@ class NewtaskCommand extends MagicCommand {
 				if (!empty($result)){
 					$send['text'] = __('tgbot.task.get_day');
 
-					$currentWeek = Week::getCurrentWeek();
 					$nowdt = Carbon::now();
-					$data = [];
-					$forWeeks = [-1, $currentWeek, $currentWeek+1];
-					foreach ($forWeeks as $week){
-						if(!isset($data[$week])) $data[$week] = [];
-						if (isset($result[$week])){
-							foreach ($result[$week] as $lesson){
-								$hash = $lesson['day']. $lesson['num'];
-								$lesson['week'] = $week;
-								if(!isset($data[$hash])) $data[$week][$hash] = $lesson;
-
-							}
-						}else{
-							//берйм данные от -1 и дублируем для этой недели
-							$data[$week] = $data[-1];
-							foreach ($data[$week] as &$val){
-								$val['week'] = $week;
-							}
-						}
-					}
-					unset($data[-1]);
 					$keyboard = [];
 
-					foreach ($data as $week => $lessons){
+					foreach (self::collectDBResult($result) as $week => $lessons){
 						foreach ($lessons as $lesson){
 							/** @var Carbon $dt */
 							$dt = clone $nowdt;
@@ -148,7 +127,7 @@ class NewtaskCommand extends MagicCommand {
 
 							if($dt->dayOfYear >= $nowdt->dayOfYear){
 								$keyboard[] = new InlineKeyboardButton([
-								   'text' => __('tgbot.task.date_row', ['date' => $dt->format('d.m.Y'), 'weekday' => Week::getDayString($lesson['day']), 'num' => $lesson['num']+1]),
+									'text' => __('tgbot.task.date_row', ['date' => $dt->format('d.m.Y'), 'weekday' => Week::getDayString($lesson['day']), 'num' => $lesson['num']+1]),
 									'callback_data' => "newtask_selectDay_{$lesson['day']}_{$lesson['num']}_{$lesson['week']}"
 								]);
 							}
@@ -286,11 +265,11 @@ class NewtaskCommand extends MagicCommand {
 				]),
 				new InlineKeyboardButton([
 					'text' => __('tgbot.goto.tasks'),
-					'callback_data' => 'tasks_show'
+					'callback_data' => 'tasks_show_newmsg'
 				]),
 				$this->getMessage()->getChat()->isPrivateChat() ? new InlineKeyboardButton([
 					'text' => __('tgbot.back_toMain_button'),
-					'callback_data' => 'start'
+					'callback_data' => 'start_newmsg'
 				]) : null
 			);
 		}elseif ($action[0] == "step2"){
@@ -308,9 +287,13 @@ class NewtaskCommand extends MagicCommand {
 	private function genLessonsKeyboard(): Keyboard{
 		$keyboard = [];
 		$co = 0;
+		DB::enableQueryLog();
 		$lessonsRaw = Agenda::getScheduleForWeek($this->getClassId(), function ($query){
-			return $query->clearOrdersBy()->select(DB::raw('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title'); // сюда не над добавляить week ЭТО фича
+			return $query->clearOrdersBy()->select(DB::raw('DISTINCT ON (lesson_id) lesson_id'), 'day', 'num', 'title')->where(function ($q){
+				$q->where('agenda.week', '>=', Week::getCurrentWeek())->orWhere("agenda.week", -1);
+			}); // сюда не над добавляить week ЭТО фича
 		}, null, true, true);
+		dump(DB::getQueryLog());
 
 		$lessons = [];
 		foreach ($lessonsRaw as $week){
@@ -383,5 +366,32 @@ class NewtaskCommand extends MagicCommand {
 			'reply_markup' => new InlineKeyboard(...$keyboard),
 			'parse_mode' => 'markdown'
 		];
+	}
+
+	public static function collectDBResult(array $result, ?int $currentWeek = null){
+		if($currentWeek == null) $currentWeek = Week::getCurrentWeek();
+		$data = [];
+		$forWeeks = [-1, $currentWeek, $currentWeek+1, $currentWeek+2];
+
+		foreach ($forWeeks as $week){
+			if(!isset($data[$week])) $data[$week] = [];
+			if (isset($result[$week])){
+				foreach ($result[$week] as $lesson){
+					$hash = $lesson['day']. $lesson['num'];
+					$lesson['week'] = $week;
+					if(!isset($data[$hash])) $data[$week][$hash] = $lesson;
+				}
+			}else{
+				//берйм данные от -1 и дублируем для этой недели
+				$data[$week] = $data[-1];
+				foreach ($data[$week] as &$val){
+					$val['week'] = $week;
+				}
+			}
+		}
+
+		unset($data[-1]);
+
+		return $data;
 	}
 }

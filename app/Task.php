@@ -19,13 +19,16 @@ use Longman\TelegramBot\Request;
  * @property string task
  * @property string desc
  * @property int class_id
+ * @property int chat_user_msg_id
+ * @property int author_id
  */
 
 class Task extends Model{
     protected $table = 'tasks';
+
     public $timestamps = true;
     public $incrementing = true;
-    protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id', "attachments"];
+    protected $fillable = ['num', 'day', 'week', 'desc', 'class_id', 'task', 'desc', 'chat_user_msg_id', 'author_id'];
 
     public static function add(int $class_id, int $author_id, int $msg_id, int $lesson_num, int $dayOfWeek, int $week, string $task, string $desc = null): Task {
         $task = Task::create([
@@ -38,24 +41,24 @@ class Task extends Model{
                 'class_id' => $class_id,
                 'desc' => $desc
             ]);
-        
+
         event(new TaskCreated($task));
-        
+
         return $task;
     }
-    
+
     public function addAttachments(array $attachments){
         if(empty($attachments)) return false;
-        
+
         foreach ($attachments as $id => $row){
             $type = array_shift($row);
             $file_id = array_shift($row);
             $caption = array_shift($row);
-            
+
             \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id, $type, $caption));
         }
     }
-    
+
     public static function exists(int $class_id, int $week, int $dayOfWeek, int $lesson_num){
         return Task::where([
             ['class_id', $class_id],
@@ -64,7 +67,7 @@ class Task extends Model{
             ['num', $lesson_num]
         ])->exists();
     }
-    
+
     public static function edit(?int $class_id = null, int $chat_user_msg_id, int $author_id, string $task, string $desc = null):  int {
         $base = Task::where([
             ['chat_user_msg_id', $chat_user_msg_id],
@@ -82,7 +85,35 @@ class Task extends Model{
         event(new TaskEdited($taskM));
         return $resp;
     }
-    
+
+    public static function editById(int $task_id, string $task_str, string $desc, int $chat_user_msg_id, int $author_id): Task{
+		/** @var Task $task */
+    	$task = Task::findOrFail($task_id);
+		$task->task = $task_str;
+		$task->desc = $desc;
+		$task->chat_user_msg_id = $chat_user_msg_id;
+		$task->author_id = $author_id;
+		$task->update();
+
+		return $task;
+    }
+
+    public function moveTo(int $week, int $day, int $num): Task{
+		/** @var Task $task */
+		$task = $this;
+		$org_task = clone $task;
+		$task->week = $week;
+		$task->day = $day;
+		$task->num = $num;
+		$task->update();
+
+		return $task;
+	}
+
+    public static function deleteById(int $task_id){
+    	return Task::destroy($task_id);
+	}
+
     /**
      *  Магичиская функция котороя дополянет Agenda::getScheduleForWeek и выдаёт уже с дз
      *
@@ -133,7 +164,7 @@ class Task extends Model{
 
         return null;
     }
-    
+
     public function attachments(){
         $this->hasMany('attachments', 'task_id', 'id');
     }

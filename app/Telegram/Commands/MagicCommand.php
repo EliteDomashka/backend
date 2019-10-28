@@ -64,6 +64,12 @@ abstract class MagicCommand extends UserCommand{
 			'parse_mode' => 'markdown'
 		]);
 	}
+	public function deleteMessage(int $message_id): ServerResponse{
+		return Request::deleteMessage([
+			'message_id' => $message_id,
+			'chat_id' => $this->getMessage()->getChat()->getId()
+		]);
+	}
 	public function getClassId(): ?int{
 		return isset($this->getClass()->id) ? $this->getClass()->id : null;
 	}

@@ -77,4 +77,6 @@ class Conversation {
 	public function setWaitMsg(bool $waitMsg): void {
 		$this->waitMsg = $waitMsg;
 	}
+
+	//TODO: implement validete method
 }
