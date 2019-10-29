@@ -265,9 +265,9 @@ class TaskCommand extends MagicCommand {
 
 	public static function genMsgTask(int $task_id):array {
 		$resp = [];
-		DB::enableQueryLog();
+//		DB::enableQueryLog();
 		$task = Task::getById($task_id);
-		dump(DB::getQueryLog());
+//		dump(DB::getQueryLog());
 		$task['num']++;
 
 		if($task == null) return  $resp + ['text' => "no data"];
