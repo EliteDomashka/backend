@@ -24,6 +24,6 @@ class Telegram extends Controller {
 		}
 	}
 	public function set(PhpTelegramBotContract $bot){
-		dump($bot->setWebhook('https://'.env('APP_URL') . '/api/tgbot'));
+		dump($bot->setWebhook('https://'.env('APP_DOMAIN') . '/api/tgbot'));
 	}
 }
