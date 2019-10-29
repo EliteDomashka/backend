@@ -83,7 +83,7 @@ class NewtaskCommand extends MagicCommand {
 				$send['text'] = __('tgbot.task.need_attachment');
 			}
 
-			$this->sendMessage([
+			$this->sendMessage($send + [
 					"reply_to_message_id" => $msg->getMessageId(),
 					"reply_markup" => new InlineKeyboard(
 						new InlineKeyboardButton([
@@ -91,7 +91,7 @@ class NewtaskCommand extends MagicCommand {
 							'callback_data' => 'newtask_step3'
 						])
 					)
-				] + $send);
+				]);
 		}else if($this->getMessage()->getChat()->isPrivateChat() || (!$this->getMessage()->getChat()->isPrivateChat() && $this->getMessage()->getReplyToMessage() !== null)){
 			dump('ok');
 			$conv->setWaitMsg(false);
