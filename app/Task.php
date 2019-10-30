@@ -133,7 +133,9 @@ class Task extends Model{
                         ['agenda.num', '=', 'tasks.num'],
                         ['agenda.day', '=', "tasks.day"],
                         ['agenda.class_id', '=', "tasks.class_id"],
-                        ]);
+                        ])->on(function ($join2)use($week){ //берём с расписание которое под эту же неделю или (если нет) с того что по умолчанию
+                    		return $join2->on('agenda.week', '=', "tasks.week")->orOn('agenda.week', '=', DB::raw(-1));
+						});
                     if($week != null){
                         $join->where('tasks.week', $week);
                     }
