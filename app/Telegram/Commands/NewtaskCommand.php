@@ -192,6 +192,7 @@ class NewtaskCommand extends MagicCommand {
 					$conv->setWaitMsg(true);
 					$conv->setCommand($this);
 					$conv->notes['wait_lesson'] = true;
+					if (isset($conv->notes['waitAttachment'])) unset($conv->notes['waitAttachment']);
 					$conv->update();
 //
 					Request::sendMessage([
