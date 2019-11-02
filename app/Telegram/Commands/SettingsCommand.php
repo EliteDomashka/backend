@@ -59,6 +59,10 @@ class SettingsCommand extends MagicCommand {
 							'callback_data' => 'settings_edit_schedule_default'
 						]),
 						new InlineKeyboardButton([
+							'text' => __('tgbot.settings.schedule_get_prev2', ['week_str' => Week::humanize($week-2)]),
+							'callback_data' => 'settings_edit_schedule_prev2'
+						]),
+						new InlineKeyboardButton([
 							'text' => __('tgbot.settings.schedule_get_prev', ['week_str' => Week::humanize($week-1)]),
 							'callback_data' => 'settings_edit_schedule_prev'
 						]),
@@ -71,6 +75,10 @@ class SettingsCommand extends MagicCommand {
 							'callback_data' => 'settings_edit_schedule_next'
 						]),
 						new InlineKeyboardButton([
+							'text' => __('tgbot.settings.schedule_get_next', ['week_str' => Week::humanize($week+2)]),
+							'callback_data' => 'settings_edit_schedule_next2'
+						]),
+						new InlineKeyboardButton([
 								'text' => __('tgbot.back_button'),
 								'callback_data' => 'settings_hi'
 						])
@@ -78,21 +86,29 @@ class SettingsCommand extends MagicCommand {
 					);
 				}else{
 					$week = Carbon::now()->weekOfYear;
+					$addWeek = 0;
 					switch ($action[2]){
 						case 'default':
 							$week = -1;
 							break;
 						case 'prev':
-							$week--;
+							$addWeek--;
+							break;
+						case 'prev2':
+							$addWeek -= 2;
 							break;
 						case 'next':
-							$week++;
+							$addWeek++;
+							break;
+						case 'next2':
+							$addWeek += 2;
 							break;
 						case 'current':
 							//просто так
 							break;
 					}
 					/** @var Collection $data */
+					if($addWeek != 0) $week = Carbon::now()->addWeeks($addWeek)->weekOfYear;
 					$data = Agenda::getSchedule($this->getClassId())->addSelect('lesson_id')->where('week', $week)->get();
 					if($data->count() == 0){
 						$callbackQuery->answer([
