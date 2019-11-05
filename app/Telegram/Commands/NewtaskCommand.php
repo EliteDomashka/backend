@@ -70,7 +70,7 @@ class NewtaskCommand extends MagicCommand {
 								])
 							);
 
-							$conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId(), $msg->getCaption() ?? ""]; //TODO: accept gif, pdf, zip only
+							$conv->notes['attachments'][] = [(new \ReflectionClass($file))->getShortName(), $file->getFileId(), $msg->getCaption() ?? "", $file->getFileName()];
 							$conv->update();
 						}else{
 							$send['text'] = __('tgbot.task.attachment_limit', ['attachments' => self::ATTACHMENT_LIMIT]);

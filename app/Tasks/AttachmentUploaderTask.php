@@ -23,13 +23,15 @@ class AttachmentUploaderTask extends Task {
 	private $file_path;
 	private $file_type;
 	private $caption;
+	private $filename;
 
 	private $result;
-	public function __construct(int $task_id, int $attachment_id, string $file_id, string $file_type, ?string $caption) {
+	public function __construct(int $task_id, int $attachment_id, string $file_id, string $file_type, ?string $caption, string $filename) {
 		$this->task_id = $task_id;
 		$this->attachment_id = $attachment_id;
 		$this->file_id = $file_id;
 		$this->caption = $caption;
+		$this->filename = $filename;
 
 		$file = Request::getFile([ //TODO: call in handle
 			'file_id' => $this->file_id
@@ -49,7 +51,7 @@ class AttachmentUploaderTask extends Task {
 			dump('save');
 			try {
 				$resp = Storage::cloud()->put($path = "/attachments/{$this->task_id}/{$this->attachment_id}", $request->getBody()->getContents()); // ['visibility' => 'public']);
-				Attachment::create($this->task_id, $this->attachment_id, $this->file_type, $this->file_id, $this->caption );
+				Attachment::create($this->task_id, $this->attachment_id, $this->file_type, $this->file_id, $this->caption, $this->filename );
 
 			}catch (\Exception $exp){
 				Log::info($exp);
