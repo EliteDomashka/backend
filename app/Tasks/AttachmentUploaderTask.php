@@ -27,7 +27,7 @@ class AttachmentUploaderTask extends Task {
 	private $filesize;
 
 	private $result;
-	public function __construct(int $task_id, int $attachment_id, string $file_id, string $file_type, ?string $caption, string $filename, int $filesize) {
+	public function __construct(int $task_id, int $attachment_id, string $file_id, string $file_type, ?string $caption, ?string $filename, int $filesize) {
 		$this->task_id = $task_id;
 		$this->attachment_id = $attachment_id;
 		$this->file_id = $file_id;
