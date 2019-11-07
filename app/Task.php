@@ -55,8 +55,9 @@ class Task extends Model{
             $file_id = array_shift($row);
 			$caption = array_shift($row);
 			$filename = array_shift($row);
+			$filesize = array_shift($row);
 
-            \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id, $type, $caption, $filename));
+            \Hhxsv5\LaravelS\Swoole\Task\Task::deliver(new AttachmentUploaderTask($this->id, $id, $file_id, $type, $caption, $filename, $filesize));
         }
     }
 

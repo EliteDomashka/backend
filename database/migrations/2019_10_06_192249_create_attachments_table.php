@@ -19,7 +19,8 @@ class CreateAttachmentsTable extends Migration
             $table->string('type'); //TODO: use int
 			$table->string('filename');
             $table->string('caption', 1024)->nullable();
-            $table->string('file_id');
+			$table->string('file_id');
+			$table->bigInteger('filesize');
             $table->timestamps();
         });
     }

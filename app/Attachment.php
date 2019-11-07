@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string file_id
  * @property string caption
  * @property string filename
+ * @property int filesize
  */
 
 class Attachment extends Model{
@@ -22,7 +23,7 @@ class Attachment extends Model{
 
 
     const PATH = "attachments/";
-    public static function create(int $task_id, int $attachment_id, string $type, string $file_id, ?string $caption, string $filename){
+    public static function create(int $task_id, int $attachment_id, string $type, string $file_id, ?string $caption, string $filename, int $filesize){
         $attachment = new Attachment();
         $attachment->task_id = $task_id;
         $attachment->id = $attachment_id;
@@ -30,6 +31,7 @@ class Attachment extends Model{
         $attachment->file_id = $file_id;
         $attachment->caption = $caption;
         $attachment->filename = $filename;
+        $attachment->filesize = $filesize;
 
         $attachment->save();
     }
