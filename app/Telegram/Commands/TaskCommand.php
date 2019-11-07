@@ -183,7 +183,7 @@ class TaskCommand extends MagicCommand {
 							}
 							return $edited +[
 								'text' => __('tgbot.task.deleted'),
-								'reply_markup' => $this->getFinalInlineKeyboard($task_id)
+								'reply_markup' => $this->getFinalInlineKeyboard(-1)
 							];
 						}else{
 							$this->sendMessage([
@@ -276,11 +276,11 @@ class TaskCommand extends MagicCommand {
 	}
 
 	public function getFinalInlineKeyboard(int $task_id): InlineKeyboard{
-		return new InlineKeyboard(
-			new InlineKeyboardButton((isset($this->getConversation()->notes['edit_menu_msgid']) && $this->getMessage()->getChat()->isGroupChat() ? ["url" => "https://t.me/c/".$this->getMessage()->getChat()->getId()."/".$this->getConversation()->notes['edit_menu_msgid']] :
+		return new InlineKeyboardCleaner(
+			$task_id > -1 ? new InlineKeyboardButton((isset($this->getConversation()->notes['edit_menu_msgid']) && $this->getMessage()->getChat()->isGroupChat() ? ["url" => "https://t.me/c/".$this->getMessage()->getChat()->getId()."/".$this->getConversation()->notes['edit_menu_msgid']] :
 				['callback_data' => "task_edit_{$task_id}"]) + [
 				'text' => __('tgbot.back_button'),
-			]),
+			]) : null,
 			new InlineKeyboardButton([
 				'text' => __('tgbot.back_toMain_button'),
 				'callback_data' => "start_hi"
