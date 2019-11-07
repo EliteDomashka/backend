@@ -13,14 +13,11 @@ use PhpTelegramBot\Laravel\PhpTelegramBotContract;
 class Telegram extends Controller {
 	public function handle(PhpTelegramBotContract $bot){
 		error_reporting(E_ALL);
-		try {
-			MagicCommand::$user = null;
-			MagicCommand::$class = null;
-			if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {
-				return response((string)$response->isOk());
-			}
-		} catch (\Exception $e) {
-			report($e);
+
+		MagicCommand::$user = null;
+		MagicCommand::$class = null;
+		if ($response = $bot->processUpdate($upd = new Update(request()->all(), $bot->getBotUsername()))) {
+			return response((string)$response->isOk());
 		}
 	}
 	public function set(PhpTelegramBotContract $bot){
