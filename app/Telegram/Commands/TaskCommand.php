@@ -7,6 +7,8 @@ use App\Attachment;
 use App\ClassM;
 use App\Task;
 use App\Telegram\Commands\MagicCommand;
+use App\Telegram\Helpers\AttachmentHelper;
+use App\Telegram\Helpers\InlineKeyboardCleaner;
 use App\Telegram\Helpers\TaskCropper;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
@@ -201,7 +203,30 @@ class TaskCommand extends MagicCommand {
 							]);
 						}
 
-
+						break;
+					case 'attachments':
+						$attachments = Attachment::where('task_id', $task_id)->get();
+						dump($attachments->toArray());
+						$keyboard = [];
+						/** @var Attachment $attachment */
+						foreach ($attachments as $attachment){
+							$keyboard[] = [
+								new InlineKeyboardButton([
+									'text' => "#{$attachment->id} " . AttachmentHelper::typeToEmoji($attachment->type) . " {$attachment->filename}",
+									"callback_data" => "task_edit_{$task_id}_attachment_{$attachment->id}"
+								]),
+								new InlineKeyboardButton([
+									'text' => "❌",
+									"callback_data" => "task_edit_{$task_id}_attachment_{$attachment->id}_del"
+								])
+							];
+						}
+						$resp = $this->sendMessage([
+							'text' => 'attachments',
+							'reply_markup' => new InlineKeyboard(...$keyboard)
+						]);
+						dump($resp);
+						return [];
 						break;
 					case null:
 						$conv = $this->getConversation();
@@ -216,7 +241,7 @@ class TaskCommand extends MagicCommand {
 							]),
 							new InlineKeyboardButton([
 								'text' => __('tgbot.task.edit_attachments'),
-								"callback_data" => "task_edit_{$task_id}_attachment"
+								"callback_data" => "task_edit_{$task_id}_attachments"
 							]),
 							new InlineKeyboardButton([
 								'text' => __('tgbot.task.edit_day'),

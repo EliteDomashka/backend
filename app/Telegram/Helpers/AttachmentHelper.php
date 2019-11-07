@@ -16,14 +16,14 @@ class AttachmentHelper{
             }
         }
         if(empty($realPhotos)) return null;
-        
+
         foreach ($realPhotos as &$photo_arr){
             ksort($photo_arr);
 //            $photo_arr = array_values($photo_arr);
         }
         return $realPhotos;
     }
-    
+
     public static function toType(string $type): string {
         switch ($type){
             case "PhotoSize":
@@ -33,4 +33,14 @@ class AttachmentHelper{
                 return $type;
         }
     }
+
+    public static function typeToEmoji(string $type): string {
+    	$emoji = [
+    		"Photo" => "🖼",
+			"Document" => "📄",
+			"Audio" => ""
+		];
+
+    	return isset($emoji[$type]) ? $emoji[$type] : "🧷";
+	}
 }
