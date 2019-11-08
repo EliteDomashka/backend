@@ -4,7 +4,7 @@ MAINTAINER Alexey Lozovyagin <oleksih@gmail.com>
 
 RUN apt-get update
 # Install Postgre PDO
-RUN apt-get install -y libpq-dev \
+RUN apt-get install -y libpq-dev git \
     && docker-php-ext-configure pgsql -with-pgsql=/usr/local/pgsql \
     && docker-php-ext-install pdo pdo_pgsql pgsql
 
