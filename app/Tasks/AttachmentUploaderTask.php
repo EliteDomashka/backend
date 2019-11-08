@@ -17,6 +17,7 @@ use Longman\TelegramBot\Request;
 use PhpTelegramBot\Laravel\PhpTelegramBotContract;
 
 class AttachmentUploaderTask extends Task {
+	const DIR = '/attachments/';
 	private $task_id;
 	private $attachment_id;
 	private $file_id;
@@ -52,7 +53,7 @@ class AttachmentUploaderTask extends Task {
 		if($request->getStatusCode() == 200){
 			dump('save');
 			try {
-				$resp = Storage::cloud()->put($path = "/attachments/{$this->task_id}/{$this->attachment_id}", $request->getBody()->getContents()); // ['visibility' => 'public']);
+				$resp = Storage::cloud()->put($path = self::DIR."{$this->task_id}/{$this->attachment_id}", $request->getBody()->getContents()); // ['visibility' => 'public']);
 				Attachment::create($this->task_id, $this->attachment_id, $this->file_type, $this->file_id, $this->caption, $this->filename, $this->filesize );
 
 			}catch (\Exception $exp){

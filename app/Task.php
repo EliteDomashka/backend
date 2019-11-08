@@ -9,6 +9,7 @@ use App\Telegram\Helpers\TaskCropper;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\File;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Longman\TelegramBot\Request;
 
 /**
@@ -113,6 +114,8 @@ class Task extends Model{
 	}
 
     public static function deleteById(int $task_id){
+    	Attachment::where('task_id', $task_id)->delete();
+		Storage::cloud()->deleteDirectory(AttachmentUploaderTask::DIR.$task_id);
     	return Task::destroy($task_id);
 	}
 
