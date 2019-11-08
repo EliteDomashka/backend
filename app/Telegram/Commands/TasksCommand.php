@@ -30,7 +30,8 @@ class TasksCommand extends MagicCommand {
             $callbackQuery->answer(['text' => __('tgbot.callback_answer')]);
 
             $msg = $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
-        	if($action[1] == "newmsg"){
+
+            if(isset($action[1]) && $action[1] === "newmsg"){
         		$this->sendMessage($msg);
 			}else{
         		return $msg;
