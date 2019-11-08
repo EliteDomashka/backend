@@ -68,7 +68,7 @@ class SetupCommand extends MagicCommand {
 				$edited['text'] = __('tgbot.setup.schedule_lesson_pos', ['weekday' => Week::getDayString($notes['weekday'])]);
 				$edited['reply_markup'] = $this->genLessonsGridKeyboard();
 			}else{
-				$edited['text'] = __('tgbot.setup.schedule_lesson', ['lesson' => $c + 1, 'weekday' => Week::$days[$weekday]]);
+				$edited['text'] = __('tgbot.setup.schedule_lesson', ['lesson' => ($notes['toNum'] = $c) + 1, 'weekday' => Week::$days[$weekday]]);
 				$edited['reply_markup'] = $this->getLessonsKeyboard(isset($notes['page']) ? $notes['page'] : 0);
 				$conv->setWaitMsg(true);
 			}
@@ -82,18 +82,11 @@ class SetupCommand extends MagicCommand {
 			$lessons = &$conv->notes['day_lessons'][$conv->notes['weekday'] = $action[2]];
 
 			$pos = $action[3];
-			if($action[1] == 'up'){
-				$newpos = $pos-1;
-				if (isset($lessons[$newpos])){
-					$temp = $lessons[$newpos];
-					$lessons[$newpos] = $lessons[$pos];
-					$lessons[$pos] = $temp;
-				}else{
-					$anwser['show_alert'] = true;
-					$anwser['text'] = __('tgbot.setup.schedule_lesson_updpos_fail');
-				}
-			}else if ($action[1] === 'down'){
-				$newpos = $pos+1;
+			$newpos = null;
+			if($action[1] == 'up') $newpos = $pos-1;
+			else if ($action[1] === 'down') $newpos = $pos+1;
+
+			if($newpos != null){
 				if (isset($lessons[$newpos])){
 					$temp = $lessons[$newpos];
 					$lessons[$newpos] = $lessons[$pos];
@@ -114,9 +107,22 @@ class SetupCommand extends MagicCommand {
 			$edited['text'] = __('tgbot.setup.schedule_lesson_edit', ['lesson' => Lesson::find($lesson_id)->title]);
 			$edited['reply_markup'] = new InlineKeyboard(
 				new InlineKeyboardButton(['text' => __('tgbot.setup.remove_button', ['weekday' => Week::$days[$weekday = $conv->notes['weekday']]]), 'callback_data' => "setup_del_{$pos}_".$weekday]),
-				new InlineKeyboardButton(['text' => __('tgbot.setup.insert_author_button'), 'callback_data' => "setup_attachauthor_{$lesson_id}"]),
+//				new InlineKeyboardButton(['text' => __('tgbot.setup.insert_author_button'), 'callback_data' => "setup_attachauthor_{$lesson_id}"]),
+				new InlineKeyboardButton(['text' => __('tgbot.setup.replace_lesson'), 'callback_data' => "setup_replacelesson_{$weekday}_{$pos}"]),
 				new InlineKeyboardButton(['text' => __('tgbot.back_button'), 'callback_data' => "setup_weekday_{$weekday}_force"])
 			);
+		}elseif ($action[0] == "replacelesson"){
+			$notes['weekday'] = $weekday = $action[1];
+			$notes['toNum'] = $pos = $action[2];
+
+			$this->sendMessage([
+				'text' => __('tgbot.setup.schedule_lesson', ['lesson' => $pos+1, 'weekday' => Week::getDayString($weekday)]),
+				'reply_markup' => $this->getLessonsKeyboard(isset($notes['page']) ? $notes['page'] : 0),
+			]);
+
+			$conv->setWaitMsg(true);
+			$conv->update();
+			return [];
 		}else if($action[0] == 'del'){
 			if($action[2] == "force"){
 				$lessons = &$conv->notes['day_lessons'][$conv->notes['weekday']];
@@ -220,7 +226,7 @@ class SetupCommand extends MagicCommand {
 
 			Request::sendMessage([
 				'chat_id' => $this->getMessage()->getChat()->getId(),
-				'text' => __( 'tgbot.setup.schedule_lesson', ['lesson' => ($c = count($notes['day_lessons'][$weekday = $notes['weekday']]))+1, 'weekday' => Week::$days[$weekday]]),
+				'text' => __( 'tgbot.setup.schedule_lesson', ['lesson' => $notes['toInt'] = ($c = count($notes['day_lessons'][$weekday = $notes['weekday']]))+1, 'weekday' => Week::$days[$weekday]]),
 				'reply_markup' => $this->getLessonsKeyboard($page),
 				'parse_mode' => 'Markdown'
 			]);
@@ -229,7 +235,7 @@ class SetupCommand extends MagicCommand {
 			$notes['page'] = $page;
 		}else {
 			$lesson = Lesson::firstOrCreate(['title' => $text]);
-			$notes['day_lessons'][$notes['weekday']][] = $lesson['id'];
+			$notes['day_lessons'][$notes['weekday']][$notes['toNum']] = $lesson['id'];
 
 			Request::sendMessage([
 				'chat_id' => $this->getMessage()->getChat()->getId(),
@@ -271,7 +277,7 @@ class SetupCommand extends MagicCommand {
 	}
 	public function getLessonsKeyboard(int $page): Keyboard{
 //		$perPage = 15;
-		$perPage = 6;
+		$perPage = 9;
 		$count = Lesson::where('verified', true)->count();
 		$data = Lesson::where('verified', true)->offset($perPage*$page)->limit($perPage)->get()->pluck('title', 'id');
 		$keyboard = [];
