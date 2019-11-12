@@ -14,10 +14,8 @@ class Cors
      * @return mixed
      */
     public function handle($request, Closure $next) {
-    	$step = $next($request);
-    	if(method_exists($step, 'header')) return $next($request)
-            ->header('Access-Control-Allow-Origin', '*')
-            ->header('Access-Control-Allow-Methods', 'GET, POST');
-    	return $step;
+		return $next($request)
+			->header('Access-Control-Allow-Origin', '*')
+			->header('Access-Control-Allow-Methods', 'GET, POST');
     }
 }
