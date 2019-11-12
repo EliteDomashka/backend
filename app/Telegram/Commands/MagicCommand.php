@@ -10,6 +10,7 @@ use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\Message;
 use Longman\TelegramBot\Entities\ServerResponse;
 use Longman\TelegramBot\Request;
+use Sentry\State\Scope;
 
 abstract class MagicCommand extends UserCommand{
 	/** @var Conversation */
@@ -45,7 +46,18 @@ abstract class MagicCommand extends UserCommand{
 		if(self::$user == null){
 			$id = $this->getFrom()->getId();
 			self::$user = User::firstOrCreate(['id' => $id], ['lang' => $this->getFrom()->getLanguageCode() ?? 'uk']);
-			App::setLocale(self::$user->lang);
+			App::setLocale($lang = self::$user->lang);
+
+			if(app()->bound('sentry')) {
+				$chat_id = $this->getMessage()->getChat()->getId();
+				$username = $this->getFrom()->getUsername();
+				app('sentry')->configureScope(function (Scope $scope)use($id, $lang, $chat_id, $username): void {
+					$scope->setUser([
+						'id' => $id,
+						'username' => $username
+					])->setTag('lang', $lang)->setExtra('chat_id', $chat_id);
+				});
+			}
 		}
 		return self::$user;
 	}
