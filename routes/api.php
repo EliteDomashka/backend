@@ -20,5 +20,7 @@ Route::middleware(['api', 'publicapi'])->group(function () {
     Route::get('/week/{week}', 'Api@getWeek');
 	Route::get('/agenda/{week}', 'Api@getAgenda');
 	Route::get('/full/{week}', 'Api@getFullWeek');
+
+	Route::get('/attachments/{task_id}', 'Api@getAttachments');
 });
 

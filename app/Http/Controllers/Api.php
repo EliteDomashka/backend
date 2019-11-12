@@ -44,4 +44,8 @@ class Api extends Controller {
 
 		return response()->json(['response' => $agenda]);
 	}
+
+	public function getAttachments(int $task_id){
+		return response()->json(['response' => Attachment::where('task_id', $task_id)->get()]); //TODO: add check of class_id
+	}
 }
