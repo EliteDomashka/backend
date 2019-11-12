@@ -36,7 +36,7 @@ class GetClass
 			]);
 
 			if($class !== null) return $next($request);
-		}
-
-    }
+    	}
+    	return response()->json(['message' => "err get class"])->setStatusCode(403);
+	}
 }
