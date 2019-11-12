@@ -79,7 +79,7 @@ class Task extends Model{
         if($class_id != null) $base->where('class_id', $class_id);
 
         /** @var $taskM Task  */
-        $taskM = $base->first();
+        $taskM = $base->firstOrFail();
 
         $taskM->task = $task;
         $taskM->desc = $desc;
