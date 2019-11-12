@@ -31,7 +31,7 @@ class TasksCommand extends MagicCommand {
 
             $msg = $this->genMessage($edited, (isset($action[1]) && is_bool($action[1])) ? $action[1] : false, isset($action[2]) ? $action[2] : Week::getCurrentWeek(), isset($action[3]) ? $action[3] : false);
 
-            if(isset($action[1]) && $action[1] === "newmsg"){
+            if(isset($action[1]) && $action[1] === "newmsg" && !isset($action[2])){
         		$this->sendMessage($msg);
 			}else{
         		return $msg;
