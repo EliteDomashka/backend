@@ -15,5 +15,4 @@ phpstorm.meta.php
 storage/logs/*
 
 .env.stable
-
 .env.dev

@@ -3,8 +3,8 @@
 return [
     'dsn' => env('SENTRY_LARAVEL_DSN'),
 
-    // capture release as git sha
-     'release' => trim(exec('git --git-dir ' . base_path('.git') . ' log --pretty="%h" -n1 HEAD')),
+    // использую docker, у каждого образа свой индификатор, он какрас в /etc/hostname, не использую git ткк .git апка не выгружается
+     'release' => trim(exec('cat /etc/hostname')),
 
     // Capture bindings on SQL queries
     'breadcrumbs.sql_bindings' => true,
