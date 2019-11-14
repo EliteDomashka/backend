@@ -61,7 +61,7 @@ class SetupCommand extends MagicCommand {
 			$notes['weekday'] = $weekday = $action[1];
 
 			if(!isset($notes['day_lessons'])) $notes['day_lessons'] = [];
-			if(!isset($notes['day_lessons'][$weekday]))  $notes['day_lessons'][$weekday] = [];
+			if(!isset($notes['day_lessons'][$weekday])) $notes['day_lessons'][$weekday] = [];
 			$c = count($notes['day_lessons'][$weekday]);
 
 			if(isset($action[2]) && $action[2] == "force" && $c > 1){

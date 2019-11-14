@@ -12,8 +12,6 @@ use App\Telegram\Helpers\InlineKeyboardCleaner;
 use App\Telegram\Helpers\TaskCropper;
 use App\Telegram\Helpers\Week;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\DB;
 use Longman\TelegramBot\Entities\CallbackQuery;
 use Longman\TelegramBot\Entities\InlineKeyboard;
 use Longman\TelegramBot\Entities\InlineKeyboardButton;
