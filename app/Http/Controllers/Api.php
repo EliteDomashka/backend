@@ -8,6 +8,7 @@ use App\Agenda;
 use App\Attachment;
 use App\Task;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class Api extends Controller {
 	public function getWeek(Request $request, int $week){
@@ -43,6 +44,15 @@ class Api extends Controller {
 		}
 
 		return response()->json(['response' => $agenda]);
+	}
+
+	public function getAttachment(int $task_id, int $attachment_id){
+		$attachment = Attachment::where([
+			['task_id', $task_id],
+			['id', $attachment_id]
+		])->firstOrFail();
+		$filename = $attachment->filename ?: ($attachment->type == "Photo" ? "photo.jpg" : $attachment_id);
+		return Storage::cloud()->download(Attachment::PATH."{$task_id}/{$attachment_id}", $filename);
 	}
 
 	public function getAttachments(int $task_id){

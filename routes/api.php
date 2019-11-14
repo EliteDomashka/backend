@@ -23,4 +23,5 @@ Route::middleware(['api', 'publicapi'])->group(function () {
 
 	Route::get('/attachments/{task_id}', 'Api@getAttachments');
 });
+Route::get('/attachment/{task_id}/{attachment_id}', 'Api@getAttachment');
 
