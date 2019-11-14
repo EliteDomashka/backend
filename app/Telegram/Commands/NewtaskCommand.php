@@ -66,7 +66,7 @@ class NewtaskCommand extends MagicCommand {
 							$send['reply_markup'] = new InlineKeyboard(
 								new InlineKeyboardButton([
 									'text' => __('tgbot.task.attachment_accepted_button'),
-									'callback_data' => 'newtask_step3'
+									'callback_data' => isset($conv->notes['endCallback']) ? $conv->notes['endCallback'] : 'newtask_step3'
 								])
 							);
 

@@ -202,8 +202,34 @@ class TaskCommand extends MagicCommand {
 						}
 
 						break;
+					case 'attachment':
+						break;
 					case 'attachments':
 						$attachments = Attachment::where('task_id', $task_id)->get();
+
+						if($action[2] == "add") {
+							$conv = $this->getConversation();
+							$conv->notes['attachments'] = [];
+
+							/** @var Attachment $attachment */
+							foreach ($attachments as $attachment){
+								$conv->notes['attachments'][] = [$attachment->type, $attachment->file_id, $attachment->caption, $attachment->filename, $attachment->filesize];
+							}
+
+							$conv->notes['waitAttachment'] = true;
+							$conv->notes['endCallback'] = "task_edit_{$task_id}_save";
+							$conv->setWaitMsg(true);
+							$conv->setCommand($this);
+							$conv->update();
+
+							Request::deleteMessage($edited);
+
+							$edited['text'] = __('tgbot.task.wait_attachment');
+							$edited['reply_markup'] = Keyboard::forceReply();
+							Request::sendMessage($edited);
+							return [];
+						}
+
 						dump($attachments->toArray());
 						$keyboard = [];
 						/** @var Attachment $attachment */
@@ -219,6 +245,18 @@ class TaskCommand extends MagicCommand {
 								])
 							];
 						}
+						$keyboard[] = [
+							new InlineKeyboardButton([
+								'text' => __('tgbot.task.add_attachment'),
+								"callback_data" => "task_edit_{$task_id}_attachments_add"
+							])
+						];
+						$keyboard[] = [
+							new InlineKeyboardButton([
+								'text' => __('tgbot.back_button'),
+								"callback_data" => "task_deletemsg"
+							])
+						];
 						$resp = $this->sendMessage([
 							'text' => 'attachments',
 							'reply_markup' => new InlineKeyboard(...$keyboard)
