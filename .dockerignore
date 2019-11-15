@@ -1,5 +1,0 @@
-.git/
-tests/
-storage/framework/cache/*
-logs/
-node_modules/

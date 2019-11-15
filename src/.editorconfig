@@ -11,11 +11,5 @@ trim_trailing_whitespace = true
 [*.md]
 trim_trailing_whitespace = false
 
-[*.{yml,yaml,sh,conf}]
+[*.{yml,yaml}]
 indent_size = 2
-
-[*.{html,css,scss,less,js,vue,blade.php}]
-indent_size = 2
-
-[Makefile]
-indent_style = tab

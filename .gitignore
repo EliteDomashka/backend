@@ -1,18 +1,17 @@
-/node_modules
-/public/hot
-/public/storage
-/storage/*.key
-/vendor
-.env
-.phpunit.result.cache
-Homestead.json
-Homestead.yaml
-npm-debug.log
-yarn-error.log
-phpstorm.meta.php
+# Environment deps.
+/.env*
 
-.idea/
-storage/logs/*
+# IDEs
+/nbproject
+/.idea
 
-.env.stable
-.env.dev
+# Temp dirs & trash
+/temp
+/tmp
+/build
+/.build
+.DS_Store
+
+# etc.
+*.cache
+/gl-*-report.json
