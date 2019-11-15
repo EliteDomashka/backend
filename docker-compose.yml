@@ -83,10 +83,10 @@ services:
     - frontend-network
 
   nginx:
-#    image: registry.gitlab.com/elitedomashka/new-backend/nginx:latest
-    build:
-      context: ./docker/nginx
-      dockerfile: Dockerfile
+    image: registry.gitlab.com/elitedomashka/new-backend/nginx:latest
+#    build:
+#      context: ./docker/nginx
+#      dockerfile: Dockerfile
     restart: always
     working_dir: /usr/share/nginx/html
     environment:
