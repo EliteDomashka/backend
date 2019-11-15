@@ -116,20 +116,20 @@ Execute phpunit (stable):
   image: $APP_IMAGE:$CI_COMMIT_REF_NAME
   only: *stable-only
 
-Execute phpstan (branch): &execute-phpstan
-  stage: test
-  image: $APP_IMAGE:$CI_COMMIT_REF_SLUG
-  only: *branch-only
-  except: *tests-except
-  script:
-  - cd ./src
-  - composer_install
-  - php ./vendor/bin/phpstan analyze --ansi --level=2 ./app
-
-Execute phpstan (stable):
-  <<: *execute-phpstan
-  image: $APP_IMAGE:$CI_COMMIT_REF_NAME
-  only: *stable-only
+#Execute phpstan (branch): &execute-phpstan
+#  stage: test
+#  image: $APP_IMAGE:$CI_COMMIT_REF_SLUG
+#  only: *branch-only
+#  except: *tests-except
+#  script:
+#  - cd ./src
+#  - composer_install
+#  - php ./vendor/bin/phpstan analyze --ansi --level=2 ./app
+#
+#Execute phpstan (stable):
+#  <<: *execute-phpstan
+#  image: $APP_IMAGE:$CI_COMMIT_REF_NAME
+#  only: *stable-only
 
 Execute npm build (branch): &execute-npm-build
   stage: test
