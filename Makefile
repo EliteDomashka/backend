@@ -71,9 +71,8 @@ help: ## Show this help
 app-pull: ## Application - pull latest Docker image (from remote registry)
 	-$(docker_bin) pull "$(APP_IMAGE):$(PULL_TAG)"
 
-app: app-pull ## Application - build Docker image locally
+app: app-pull ## Application - build Docker image locally 	  --cache-from "$(APP_IMAGE):$(PULL_TAG)" \
 	$(docker_bin) build \
-	  --cache-from "$(APP_IMAGE):$(PULL_TAG)" \
 	  --tag "$(APP_IMAGE_LOCAL_TAG)" \
 	  -f $(APP_IMAGE_DOCKERFILE) $(APP_IMAGE_CONTEXT)
 
