@@ -27,6 +27,7 @@ services:
     environment:
       REDIS_HOST: redis
       REDIS_PORT: &redis-port 6379
+      DB_CONNECTION: pgsql
       DB_HOST: postgres
       DB_PORT: &pg-port 5432
       DB_DATABASE: &pg-db-name app
