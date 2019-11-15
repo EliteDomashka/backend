@@ -5,7 +5,7 @@
 SHELL = /bin/sh
 
 REGISTRY_HOST = registry.gitlab.com
-REGISTRY_PATH = tarampampam/laravel-in-docker/
+REGISTRY_PATH = elitedomashka/new-backend/
 IMAGES_PREFIX := $(shell basename $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST)))))
 
 PUBLISH_TAGS = latest
