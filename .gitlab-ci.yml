@@ -185,7 +185,7 @@ Build sources image (stable):
   script: *build-sources-image-script
 
 pages:
-  stage: deploy
+  stage: post
   image: $NODE_IMAGE
   script:
     - node -v
