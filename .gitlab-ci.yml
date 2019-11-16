@@ -29,12 +29,6 @@ before_script:
   composer install --no-interaction --ansi --no-suggest --prefer-dist;
   }
 
-pages:
-  script:
-    - node -v
-    - cd docs && ls
-    - npm run build
-    - mv .vuepress/dist ../public
 
 # Job template for a working with docker
 .with-docker: &with-docker
@@ -189,3 +183,11 @@ Build sources image (stable):
     TAG_NAME: $CI_COMMIT_REF_NAME # Here it looks like 'v1.2.0'
     PUBLISH_TAGS: "$CI_COMMIT_REF_NAME stable"
   script: *build-sources-image-script
+
+pages:
+  image: $NODE_IMAGE
+  script:
+    - node -v
+    - cd docs && ls
+    - npm run build
+    - mv .vuepress/dist ../public
