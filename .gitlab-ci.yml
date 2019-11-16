@@ -185,13 +185,16 @@ Build sources image (stable):
   script: *build-sources-image-script
 
 pages:
+  stage: deploy
   image: $NODE_IMAGE
   script:
     - node -v
     - cd docs && ls
     - npm install
     - npm run build
+    - mv .vuepress/dist ../public
+    - ls ..
   artifacts:
     paths:
-      - docs/.vuepress/dist
+      - public
 
