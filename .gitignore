@@ -15,3 +15,6 @@
 # etc.
 *.cache
 /gl-*-report.json
+
+/docs/node_modules/
+/docs/.vuepress/dist 

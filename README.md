@@ -1,15 +1,9 @@
-<p align="center">
-  <img src="https://hsto.org/webt/rf/x1/77/rfx177j6b8dxtjzfx97-rp7zzoe.png" alt="" style="width: 100%" />
-</p>
+Репо базується на репо [Laravel in Docker](https://gitlab.com/tarampampam/laravel-in-docker). Що робить тут Makefile і чому воно так можна почитати там.
 
----
+[Документація]()
+## Системні вимоги
 
-This is an example of dockerized Laravel application, integrated with GitLab CI _(sources testing and images building)_.
-
-## System requirements
-
-For local application starting (for development) make sure that you have locally installed next applications:
-
+Для локального розвертання (для розробки), необхідно встановити такі програми:
 - `docker >= 18.0` _(install: `curl -fsSL get.docker.com | sudo sh`)_
 - `docker-compose >= 1.22` _([installing manual][install_compose])_
 - `make >= 4.1` _(install: `apt-get install make`)_
@@ -50,27 +44,3 @@ Command signature | Description
 > **<sup>1</sup>** required for Docker images pulling/pushing. If you use Two-Factor Authentication (2FA) you should use auth token instead your password. Generate your token [here][personal_access_tokens].
 
 After application starting you can open [127.0.0.1:9999](http://127.0.0.1:9999/) in your browser.
-
-### Fast application starting
-
-Just execute into your terminal next commands:
-
-```bash
-$ git clone https://gitlab.com/tarampampam/laravel-in-docker.git ./laravel-in-docker && cd $_
-$ make init
-```
-
-## CI & CD
-
-When you make `git push`, it:
-
-- Build application Docker images and `push` it into Docker registry with tag, which equals branch name;
-- Run unit-tests;
-- Test assets building.
-
-When you make `git push` into branch named `master`, CI uses `latest` and `master` images tags into Docker registry.
-
-When you make `git push` **tag** like `vX.X.X` (where `X` - is numeric value), CI uses tags `vX.X.X` and `stable` into Docker registry.
-
-[install_compose]:https://docs.docker.com/compose/install/#install-compose
-[personal_access_tokens]:https://gitlab.com/profile/personal_access_tokens

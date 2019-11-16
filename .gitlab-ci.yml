@@ -21,12 +21,20 @@ cache:
   - "${CI_PROJECT_DIR}/.build/"
   - src/vendor/
   - src/node_modules/
+  - docs/node_modules/
 
 before_script:
 - mkdir -p "${CI_PROJECT_DIR}/.build"
 - function composer_install() {
   composer install --no-interaction --ansi --no-suggest --prefer-dist;
   }
+
+pages:
+  script:
+    - node -v
+    - cd docs && ls
+    - npm run build
+    - mv .vuepress/dist ../public
 
 # Job template for a working with docker
 .with-docker: &with-docker
