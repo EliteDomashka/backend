@@ -11,8 +11,7 @@
         "php": "^7.2",
         "fideloper/proxy": "^4.0",
         "laravel/framework": "^6.2",
-        "laravel/tinker": "^1.0",
-        "phpstan/phpstan": "^0.11.19"
+        "laravel/tinker": "^1.0"
     },
     "require-dev": {
         "facade/ignition": "^1.4",
@@ -51,13 +50,14 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
-            "@php artisan package:discover --ansi"
+            "@php artisan package:discover --ansi",
+            "@php artisan storage:link"
         ],
         "post-root-package-install": [
-            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+            "[ -f .env ] || (cp .env.example .env && @php artisan key:generate --ansi)"
         ],
-        "post-create-project-cmd": [
-            "@php artisan key:generate --ansi"
-        ]
+        "test": "@php ./vendor/bin/phpunit --no-coverage",
+        "test-cover": "@php ./vendor/bin/phpunit --coverage-text",
+        "phpstan": "@php artisan code:analyse"
     }
 }
