@@ -50,11 +50,9 @@
     "scripts": {
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "[ -f .env ] || (@cp .env.example .env && @php artisan key:generate --ansi)",
             "@php artisan package:discover --ansi",
             "@php artisan storage:link"
-        ],
-        "post-root-package-install": [
-            "[ -f .env ] || (cp .env.example .env && @php artisan key:generate --ansi)"
         ],
         "test": "@php ./vendor/bin/phpunit --no-coverage",
         "test-cover": "@php ./vendor/bin/phpunit --coverage-text",
