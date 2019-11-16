@@ -1,4 +1,4 @@
-FROM php:7.2.10-fpm-alpine
+FROM php:7.3-fpm-alpine3.10
 LABEL Description="Application container"
 
 ENV PS1='\[\033[1;32m\]🐳  \[\033[1;36m\][\u@\h] \[\033[1;34m\]\w\[\033[0;35m\] \[\033[1;36m\]# \[\033[0m\]'
@@ -6,7 +6,7 @@ ENV PS1='\[\033[1;32m\]🐳  \[\033[1;36m\][\u@\h] \[\033[1;34m\]\w\[\033[0;35m\
 ENV COMPOSER_VERSION 1.7.2
 ## Looked here: <https://github.com/prooph/docker-files/blob/master/php/7.2-cli>
 ENV PHP_REDIS_VERSION 4.1.1
-ENV PHP_XDEBUG_VERSION 2.6.0
+ENV PHP_XDEBUG_VERSION 2.8.0
 
 # persistent / runtime deps
 ENV PHPIZE_DEPS \
