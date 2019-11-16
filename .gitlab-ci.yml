@@ -191,4 +191,7 @@ pages:
     - cd docs && ls
     - npm install
     - npm run build
-    - mv .vuepress/dist ../public
+  artifacts:
+    paths:
+      - docs/.vuepress/dist
+
