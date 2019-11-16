@@ -55,7 +55,10 @@
             "@php artisan storage:link"
         ],
         "test": "@php ./vendor/bin/phpunit --no-coverage",
-        "test-cover": "@php ./vendor/bin/phpunit --coverage-text",
+        "test-cover": [
+            "@php artisan key:generate --ansi",
+            "@php ./vendor/bin/phpunit --coverage-text"
+        ],
         "phpstan": "@php artisan code:analyse"
     }
 }

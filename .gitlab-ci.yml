@@ -109,7 +109,7 @@ Execute phpunit (branch): &execute-phpunit
   - docker-php-ext-enable xdebug
   - cd ./src
   - composer_install
-  - php ./vendor/bin/phpunit --colors=never --coverage-text
+  - composer test-cover
 
 Execute phpunit (stable):
   <<: *execute-phpunit
@@ -124,7 +124,7 @@ Execute phpstan (branch): &execute-phpstan
   script:
   - cd ./src
   - composer_install
-  - php artisan code:analyse
+  - composer phpstan
 
 Execute phpstan (stable):
   <<: *execute-phpstan
