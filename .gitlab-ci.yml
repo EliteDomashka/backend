@@ -189,5 +189,6 @@ pages:
   script:
     - node -v
     - cd docs && ls
+    - npm install
     - npm run build
     - mv .vuepress/dist ../public
